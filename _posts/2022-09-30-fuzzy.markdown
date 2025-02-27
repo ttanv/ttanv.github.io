@@ -1,15 +1,12 @@
 ---
 layout: post
-title:  "Fuzzy Metaballs: Approximate Differentiable Rendering with Algebraic Surfaces"
-date:   2022-07-21 22:21:59 +00:00
-image: /images/fuzzy22.png
+title:  "RealFL: A Realistic Platform for Federated Learning"
+date:   2023-10-30 00:00:00 +00:00
+image: /images/realfl.png
 categories: research
-author: "Leo Keselman"
-authors: "<strong>Leonid Keselman</strong>, Martial Hebert"
-venue: "European Conference on Computer Vision (Oral)"
-arxiv: https://arxiv.org/abs/2207.10606
-code: https://github.com/leonidk/fuzzy-metaballs
-website: https://leonidk.github.io/fuzzy-metaballs/
-youtube: https://www.youtube.com/watch?v=Ec7cxEc9eOU
+author: "Hend K Gedawy"
+authors: "Hend K Gedawy, Khaled A Harras, Thang Bui, <strong>Temoor Tanveer</strong>"
+venue: "Proceedings of the Int'l ACM Conference on Modeling Analysis and Simulation of Wireless and Mobile Systems"
+pdf: "https://acm.org" 
 ---
-An approximate differentiable renderer for a compact, interpretable representation, which we call Fuzzy Metaballs. Our approximate renderer focuses on rendering shapes via depth maps and silhouettes. It sacrifices fidelity for utility, producing fast runtimes and high-quality gradient information that can be used to solve vision tasks.
+Federated Learning (FL) has emerged as a privacy-preserving alternative to centralized machine learning. However, most FL frameworks and assessments are based on simulations, unrealistic datasets, and lack the heterogeneity and environmental controls needed for large-scale, real-world deployment. RealFL is an open-source, extendable platform that addresses these limitations by enabling realistic control over network conditions, client churn, data distribution, and training complexity.

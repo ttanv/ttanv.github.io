@@ -1,15 +1,11 @@
 ---
 layout: post
-title:  "Discovering Multiple Algorithm Configurations"
-date:   2023-03-14 22:21:59 +00:00
-image: /images/modecfg.png
+title:  "Toward Context-Aware Federated Learning Assessment: A Reality Check"
+date:   2023-12-01 00:00:00 +00:00
+image: /images/contextaware.png
 categories: research
-author: "Leo Keselman"
-authors: "<strong>Leonid Keselman</strong>, Martial Hebert"
-venue: "International Conference on Robotics and Automation"
-arxiv: https://arxiv.org/abs/2303.07434
-code: https://github.com/leonidk/modecfg
-website: https://leonidk.github.io/modecfg
-youtube: https://www.youtube.com/watch?v=r2426BR4r8o
+author: "Hend K Gedawy"
+authors: "Hend K Gedawy, Khaled A Harras, Thang Bui, <strong>Temoor Tanveer</strong>"
+venue: "IEEE Internet of Things Journal"
 ---
-We show the benefits of discovering an ensemble of configurations for a given algorithm during the course of optimization. Results on stereo, planning and visual odometry. 
+Despite the promise of federated learning to build models without compromising user privacy, many existing FL testbeds fall short when faced with real-world challenges. This work critically examines current experimental setups—highlighting issues such as unrealistic datasets, limited heterogeneity, and inadequate environmental control—and proposes a context-aware assessment framework that better reflects practical deployment scenarios.
