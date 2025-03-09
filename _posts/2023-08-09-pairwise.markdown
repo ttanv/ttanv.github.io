@@ -4,8 +4,8 @@ title:  "Bridging the Chasm Between Ideal and Realistic Federated Learning: A Me
 date:   2023-12-04 00:00:00 +00:00
 image: /images/measurements.png
 categories: research
-author: "Hend K Gedawy"
+author: "Temoor Tanveer"
 authors: "Hend K Gedawy, Khaled A Harras, <strong>Temoor Tanveer</strong>, Thang Bui"
 venue: "IEEE International Conference on Cloud Computing Technology and Science (CloudCom)"
 ---
-This empirical study was the first of its kind to quantify how realistic environmental factors—such as device and network capacities, data distribution, and client churn—affect federated learning performance. The results, which cover training time, accuracy, and communication overhead, underscore the significant gap between idealized simulations and the realities of deploying FL in heterogeneous, real-world settings.
+This empirical study quantifues how realistic environmental factors—such as device and network capacities, data distribution, and client churn—affect federated learning performance. The results underscore the significant gap between idealized simulations and the realities of deploying FL in real-world settings.
