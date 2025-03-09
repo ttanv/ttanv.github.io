@@ -8,4 +8,4 @@ author: "Hend K Gedawy"
 authors: "Hend K Gedawy, Khaled A Harras, Thang Bui, <strong>Temoor Tanveer</strong>"
 venue: "IEEE Internet of Things Journal"
 ---
-Despite the promise of federated learning to build models without compromising user privacy, many existing FL testbeds fall short when faced with real-world challenges. This work critically examines current experimental setups—highlighting issues such as unrealistic datasets, limited heterogeneity, and inadequate environmental control—and proposes a context-aware assessment framework that better reflects practical deployment scenarios.
+This work critically examines current experimental setups—highlighting issues such as unrealistic datasets, limited heterogeneity, and inadequate environmental control—and proposes a context-aware assessment framework that better reflects practical deployment scenarios.
