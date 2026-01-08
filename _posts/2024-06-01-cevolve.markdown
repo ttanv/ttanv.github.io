@@ -1,0 +1,9 @@
+---
+layout: post
+title:  "CEvolve: Sample-Efficient LLM-Guided Optimization"
+date:   2024-06-01 00:00:00 +00:00
+image: /images/cevolve.png
+categories: Intel
+author: "Temoor Ali"
+---
+A framework for LLM-guided evolution to discover algorithms and optimized code. CEvolve uses deterministic diversity via CVT-MAP-Elites, outperforming multi-island competitors at a fraction of compute.

@@ -17,56 +17,160 @@
 
   <meta name="author" content="{{ site.name }}" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231B2F4C' width='100' height='100' rx='12'/><text x='50' y='68' font-family='system-ui,sans-serif' font-size='50' font-weight='600' fill='white' text-anchor='middle'>TT</text></svg>">
 
   <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/style.css" />
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
-  <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
+  <style>
+    .theme-toggle {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: opacity 0.2s ease;
+      z-index: 1000;
+      color: var(--text-secondary);
+    }
+    .theme-toggle:hover {
+      opacity: 0.7;
+    }
+    .sun-icon, .moon-icon {
+      position: absolute;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    [data-theme="dark"] .sun-icon,
+    .moon-icon {
+      opacity: 1;
+      transform: rotate(0deg);
+    }
+    [data-theme="dark"] .moon-icon,
+    .sun-icon {
+      opacity: 0;
+      transform: rotate(-90deg);
+    }
+    [data-theme="dark"] .sun-icon {
+      opacity: 1;
+      transform: rotate(0deg);
+    }
+    [data-theme="dark"] .moon-icon {
+      opacity: 0;
+    }
+    @media (prefers-color-scheme: dark) {
+      .sun-icon { opacity: 1; transform: rotate(0deg); }
+      .moon-icon { opacity: 0; transform: rotate(-90deg); }
+    }
+    @media (prefers-color-scheme: light) {
+      .sun-icon { opacity: 0; transform: rotate(90deg); }
+      .moon-icon { opacity: 1; transform: rotate(0deg); }
+    }
+  </style>
 </head>
 
 <body>
-  <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+  <nav class="nav-bar">
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#research">Research</a>
+      <a href="#publications">Publications</a>
+      <a href="#projects">Projects</a>
+      <a href="#teaching">Teaching</a>
+    </div>
+  </nav>
+
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span class="sun-icon">&#9728;</span>
+    <span class="moon-icon">&#9790;</span>
+  </button>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      let newTheme;
+      if (currentTheme === 'dark') {
+        newTheme = 'light';
+      } else if (currentTheme === 'light') {
+        newTheme = 'dark';
+      } else {
+        newTheme = prefersDark ? 'light' : 'dark';
+      }
+
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    // Load saved theme or default to dark
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;padding-top:10px;">
     <tr style="padding:0px">
       <td style="padding:0px">
-        <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+        <table id="about" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr style="padding:0px">
-            <td style="padding:2.5%;width:60%;vertical-align:middle">
+            <td style="padding:2.5%;padding-top:0;width:60%;vertical-align:middle">
               <h1>
                 Temoor Tanveer
               </h1>
               <p>
-                I am a Research Assistant at <a href="https://www.hbku.edu.qa/en/qcri/about">Qatar Computing Research Institute</a>, where my focus is on LLM safety and alignment. The broad focus of my research here is detecting fraudulent financial transactions through LLM and machine learning methods.
-
+                I'm a Research Engineer at <a href="https://www.hbku.edu.qa/en/qcri/about">Qatar Computing Research Institute</a> working on network security, ML systems, and LLM safety. My research focuses on building robust systems, whether that's detecting adversarial proxy traffic, discovering algorithms through LLM-guided evolution, or making models reason about safety at inference time.
               </p>
               <p>
-                I previously worked as a research intern at the <a href="https://nsl.qatar.cmu.edu/#/home">Networking Systems Lab</a>, where I co-developed an open-source federated learning testbed and published three papers.
-              </p>
-              <p>
-                <p>
-                I have served as a teaching assistant for several computer science courses at CMU. This includes the graduate-level Cloud Computing (<a href="https://www.cs.cmu.edu/~msakr/15619-s23/">15-619</a>) course, 
-                  as well as theoretical computer science (15-251), imperative computing (15-122), 2x programming fundamentals (15-112), and introductory computing principles (15-110).
-              </p>
+                Previously, I graduated from Carnegie Mellon University with a degree in Computer Science, where I also helped build an open-source federated learning testbed that led to three publications.
               </p>
               <p style="text-align:center">
-                <a target="_blank" href=tali@hbku.edu.qa"> Email</a> &nbsp;/&nbsp;
-                <a href="https://github.com/ttanv">GitHub</a> &nbsp;/&nbsp;
-                <a href="https://scholar.google.com/citations?user=qHNuPgcAAAAJ&hl">Google Scholar</a> &nbsp;/&nbsp;
-                <a href="https://www.linkedin.com/in/temoor-tanveer/"> LinkedIn </a>
+                <a target="_blank" href="mailto:ttanveer@andrew.cmu.edu">Email</a> &nbsp;&middot;&nbsp;
+                <a href="https://github.com/ttanv">GitHub</a> &nbsp;&middot;&nbsp;
+                <a href="https://scholar.google.com/citations?user=gjYQ22cAAAAJ">Google Scholar</a> &nbsp;&middot;&nbsp;
+                <a href="https://www.linkedin.com/in/ttanv/">LinkedIn</a>
               </p>
             </td>
-            <td style="padding:2.5%;width:40%;max-width:40%">
+            <td style="padding:2.5%;width:40%;max-width:40%;vertical-align:middle">
               <img style="width:75%;max-width:75%" alt="profile photo" src="images/TemoorImgCropped.jpeg">
             </td>
           </tr>
         </table>
 
-        <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+        <table id="research" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr>
             <td style="padding:2.5%;width:100%;vertical-align:middle">
-              <h2>Research</h2>
+              <h2>Research Interests</h2>
               <p>
-                I'm interested in the alignment and safety of large language models, federated learning, and privacy-preserving ML.
+                I'm interested in:
               </p>
+              <ul>
+                <li><strong>Evolutionary LLM algorithms:</strong> Using LLMs to evolve solutions for problems that are easy to verify but hard to solve, including algorithmic discovery, heuristic design, and program synthesis</li>
+                <li><strong>ML systems research:</strong> Designing machine learning systems that are efficient, robust, and deployable</li>
+                <li><strong>LLM safety and security:</strong> Adversarial robustness, jailbreak defenses, and alignment</li>
+              </ul>
+            </td>
+          </tr>
+        </table>
+
+        <table id="publications" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+          <tr>
+            <td style="padding:2.5%;width:100%;vertical-align:middle">
+              <h2>Publications</h2>
             </td>
           </tr>
         </table>
@@ -76,8 +180,13 @@
           {% for cat in post.categories %}
           {% if cat == 'research' %}
           <tr>
-            <td style="padding:2.5%;width:25%;vertical-align:middle;min-width:120px">
-              <img src="/tn{{post.image}}" alt="project image" style="width:auto; height:auto; max-width:100%;" />
+            <td style="padding:2.5%;width:30%;vertical-align:middle;min-width:180px">
+              {% if post.image %}
+              <img src="{{post.image}}" alt="project image" style="width:100%; height:auto; max-width:100%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="img-placeholder" style="display:none;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">Image coming soon</div>
+              {% else %}
+              <div class="img-placeholder" style="display:flex;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">No image</div>
+              {% endif %}
             </td>
             <td style="padding:2.5%;width:75%;vertical-align:middle">
               <h3>{{post.title}}</h3>
@@ -109,7 +218,7 @@
               <a href="{{post.youtube}}">youtube</a> /
               {% endif %}
               <p></p>
-              {{ post.excerpt }}
+              {{ post.content }}
             </td>
           </tr>
           {% endif %}
@@ -119,12 +228,10 @@
         <br>
         <br>
         <br>
-        <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+        <table id="projects" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr>
             <td style="padding:2.5%;width:100%;vertical-align:middle">
               <h2>Personal Projects</h2>
-              <p>I am also currently working on a few personal projects. 
-              </p>
             </td>
           </tr>
         </table>
@@ -134,49 +241,22 @@
           {% for cat in post.categories %}
           {% if cat == 'Intel' %}
           <tr>
-            <td style="padding:2.5%;width:25%;vertical-align:middle;min-width:120px">
-              <img src="/tn{{post.image}}" alt="project image" style="width:auto; height:auto; max-width:100%;" />
+            <td style="padding:2.5%;width:35%;vertical-align:middle;min-width:200px">
+              {% if post.image %}
+              <img src="{{post.image}}" alt="project image" style="width:100%; height:auto; max-width:100%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="img-placeholder" style="display:none;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">Image coming soon</div>
+              {% else %}
+              <div class="img-placeholder" style="display:flex;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">No image</div>
+              {% endif %}
             </td>
             <td style="padding:2.5%;width:75%;vertical-align:middle">
               <h3>{{post.title}}</h3>
               <br>
-              <em>{{post.categories}} {{post.course}}</em>
-              <br>
-              {{ post.date | date: "%Y-%m-%d" }}
-
-              <br>
-              {% if post.website %}
-              <a href="{{post.website}}">website</a> /
-              {% endif %}
-              {% if post.paper %}
-              <a href="{{post.paper}}">paper</a> /
-              {% endif %}
-              {% if post.patent %}
-              <a href="{{post.patent}}">patent</a> /
-              {% endif %}
-              {% if post.patent2 %}
-              <a href="{{post.patent2}}">patent #2</a> /
-              {% endif %}
-              {% if post.patent3 %}
-              <a href="{{post.patent3}}">patent #3</a> /
-              {% endif %}
-              {% if post.video %}
-              <a href="{{post.video}}">video</a> /
-              {% endif %}
-              {% if post.video2 %}
-              <a href="{{post.video2}}">video #2</a> /
-              {% endif %}
               {% if post.code %}
-              <a href="{{post.code}}">code</a> /
-              {% endif %}
-              {% if post.poster %}
-              <a href="{{post.poster}}">poster</a> /
-              {% endif %}
-              {% if post.slides %}
-              <a href="{{post.slides}}">slides</a> /
+              <a href="{{post.code}}">code</a>
               {% endif %}
               <p></p>
-              {{ post.excerpt }}
+              {{ post.content }}
             </td>
           </tr>
           {% endif %}
@@ -186,69 +266,20 @@
         <br>
         <br>
         <br>
-        <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+        <table id="teaching" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr>
             <td style="padding:2.5%;width:100%;vertical-align:middle">
-              <h2>Other Projects</h2>
-              <p> These include some interesting coursework projects. 
-              </p>
+              <h2>Teaching</h2>
+              <p>I served as a teaching assistant at CMU for:</p>
+              <ul>
+                <li>15-619 Cloud Computing (Graduate)</li>
+                <li>15-251 Great Ideas in Theoretical Computer Science</li>
+                <li>15-122 Principles of Imperative Computation</li>
+                <li>15-112 Fundamentals of Programming (×2)</li>
+                <li>15-110 Principles of Computing</li>
+              </ul>
             </td>
           </tr>
-        </table>
-        <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
-
-          {% for post in site.posts %}
-          {% for cat in post.categories %}
-          {% if cat != 'research' and cat != 'Intel' %}
-          <tr>
-            <td style="padding:2.5%;width:25%;vertical-align:middle;min-width:120px">
-              <img src="/tn{{post.image}}" alt="project image" style="width:auto; height:auto; max-width:100%;" />
-            </td>
-            <td style="padding:2.5%;width:75%;vertical-align:middle">
-              <h3>{{post.title}}</h3>
-              <br>
-              <em>{{post.categories}} {{post.course}}</em>
-              <br>
-              {{ post.date | date: "%Y-%m-%d" }}
-
-              <br>
-              {% if post.website %}
-              <a href="{{post.website}}">website</a> /
-              {% endif %}
-              {% if post.paper %}
-              <a href="{{post.paper}}">paper</a> /
-              {% endif %}
-              {% if post.patent %}
-              <a href="{{post.patent}}">patent</a> /
-              {% endif %}
-              {% if post.patent2 %}
-              <a href="{{post.patent2}}">patent #2</a> /
-              {% endif %}
-              {% if post.patent3 %}
-              <a href="{{post.patent3}}">patent #3</a> /
-              {% endif %}
-              {% if post.video %}
-              <a href="{{post.video}}">video</a> /
-              {% endif %}
-              {% if post.video2 %}
-              <a href="{{post.video2}}">video #2</a> /
-              {% endif %}
-              {% if post.code %}
-              <a href="{{post.code}}">code</a> /
-              {% endif %}
-              {% if post.poster %}
-              <a href="{{post.poster}}">poster</a> /
-              {% endif %}
-              {% if post.slides %}
-              <a href="{{post.slides}}">slides</a> /
-              {% endif %}
-              <p></p>
-              {{ post.excerpt }}
-            </td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-          {% endfor %}
         </table>
 
         <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">

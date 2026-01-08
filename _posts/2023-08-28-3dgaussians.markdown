@@ -1,13 +1,13 @@
 ---
 layout: post
-title:  "StructTransform: A Scalable Attack Surface for Safety-Aligned Large Language Models"
-date:   2025-02-17 22:21:59 +00:00
+title:  "StructTransform: A Scalable Attack Surface for Safety-Aligned LLMs"
+date:   2025-01-01 00:00:00 +00:00
 image: /images/sql_example_chat.png
 categories: research
 author: "Temoor Ali"
 authors: "Shehel Yoosuf, <strong>Temoor Ali</strong>"
-venue: "arXiv"
+venue: "ESORICS"
 arxiv: https://arxiv.org/pdf/2502.11853
 code: https://github.com/StructTransform/Benchmark
 ---
-We show the effectiveness of structure transformations in misaligning state-of-the-art LLMs.
+We demonstrate that simple structure transformations, changing how prompts are formatted, can systematically misalign state-of-the-art LLMs. This work highlights how brittle current safety training can be to input representation changes.
