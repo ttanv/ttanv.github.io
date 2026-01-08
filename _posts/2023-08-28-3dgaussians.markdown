@@ -5,7 +5,7 @@ date:   2025-01-01 00:00:00 +00:00
 image: /images/sql_example_chat.png
 categories: research
 author: "Temoor Ali"
-authors: "Shehel Yoosuf, <strong>Temoor Ali</strong>"
+authors: "<strong>Temoor Ali*</strong>, Shehel Yoosuf*, Ahmed Lekssays, Mashael AlSabah, Issa Khalil"
 venue: "ESORICS"
 arxiv: https://arxiv.org/pdf/2502.11853
 code: https://github.com/StructTransform/Benchmark
