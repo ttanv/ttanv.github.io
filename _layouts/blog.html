@@ -1,0 +1,230 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-E00L9PT3V9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-E00L9PT3V9');
+  </script>
+  <title>{{ page.title }} | {{ site.name }}</title>
+
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+
+  <meta name="author" content="{{ site.name }}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231B2F4C' width='100' height='100' rx='12'/><text x='50' y='68' font-family='system-ui,sans-serif' font-size='50' font-weight='600' fill='white' text-anchor='middle'>TT</text></svg>">
+
+  <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/style.css" />
+  <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    .theme-toggle {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: opacity 0.2s ease;
+      z-index: 1000;
+      color: var(--text-secondary);
+    }
+    .theme-toggle:hover {
+      opacity: 0.7;
+    }
+    .sun-icon, .moon-icon {
+      position: absolute;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    [data-theme="dark"] .sun-icon,
+    .moon-icon {
+      opacity: 1;
+      transform: rotate(0deg);
+    }
+    [data-theme="dark"] .moon-icon,
+    .sun-icon {
+      opacity: 0;
+      transform: rotate(-90deg);
+    }
+    [data-theme="dark"] .sun-icon {
+      opacity: 1;
+      transform: rotate(0deg);
+    }
+    [data-theme="dark"] .moon-icon {
+      opacity: 0;
+    }
+    @media (prefers-color-scheme: dark) {
+      .sun-icon { opacity: 1; transform: rotate(0deg); }
+      .moon-icon { opacity: 0; transform: rotate(-90deg); }
+    }
+    @media (prefers-color-scheme: light) {
+      .sun-icon { opacity: 0; transform: rotate(90deg); }
+      .moon-icon { opacity: 1; transform: rotate(0deg); }
+    }
+
+    .blog-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px 40px;
+    }
+    .blog-content h1 {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+    }
+    .blog-date {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 2rem;
+    }
+    .blog-content h2 {
+      display: block;
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .blog-content h3 {
+      display: block;
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .blog-content p {
+      margin: 0.75rem 0;
+      line-height: 1.8;
+    }
+    .blog-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 13px;
+      overflow-x: auto;
+      display: block;
+    }
+    .blog-content thead {
+      background: var(--card-bg);
+    }
+    .blog-content th, .blog-content td {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      text-align: left;
+    }
+    .blog-content th {
+      font-weight: 600;
+      color: var(--heading-color);
+    }
+    .blog-content pre {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 1.5rem 0;
+    }
+    .blog-content code {
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+    .blog-content ul, .blog-content ol {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+    .blog-content li {
+      margin: 0.3rem 0;
+      line-height: 1.7;
+    }
+    .blog-content blockquote {
+      border-left: 3px solid var(--accent-color);
+      margin: 1rem 0;
+      padding: 0.5rem 1rem;
+      color: var(--text-secondary);
+    }
+    .blog-back {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .blog-back:hover {
+      color: var(--heading-color);
+    }
+    @media screen and (max-width: 768px) {
+      .blog-content {
+        padding: 20px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav-bar">
+    <div class="nav-links">
+      <a href="/#about">About</a>
+      <a href="/#research">Research</a>
+      <a href="/#publications">Publications</a>
+      <a href="/#projects">Projects</a>
+      <a href="/#teaching">Teaching</a>
+    </div>
+  </nav>
+
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span class="sun-icon">&#9728;</span>
+    <span class="moon-icon">&#9790;</span>
+  </button>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      let newTheme;
+      if (currentTheme === 'dark') {
+        newTheme = 'light';
+      } else if (currentTheme === 'light') {
+        newTheme = 'dark';
+      } else {
+        newTheme = prefersDark ? 'light' : 'dark';
+      }
+
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+
+  <div class="blog-content">
+    <a class="blog-back" href="/">&larr; Back to home</a>
+    <h1>{{ page.title }}</h1>
+    {% if page.date %}
+    <div class="blog-date">{{ page.date | date: "%B %d, %Y" }}</div>
+    {% endif %}
+    {{ content }}
+  </div>
+</body>
+
+</html>

@@ -250,8 +250,11 @@
               {% endif %}
             </td>
             <td style="padding:2.5%;width:75%;vertical-align:middle">
-              <h3>{{post.title}}</h3>
+              <h3>{% if post.blog_url %}<a href="{{post.blog_url}}">{{post.title}}</a>{% else %}{{post.title}}{% endif %}</h3>
               <br>
+              {% if post.blog_url %}
+              <a href="{{post.blog_url}}">blog post</a> /
+              {% endif %}
               {% if post.code %}
               <a href="{{post.code}}">code</a>
               {% endif %}
