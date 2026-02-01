@@ -9,7 +9,7 @@ permalink: /levi
 
 Existing LLM-based evolutionary systems (OpenEvolve, ShinkaEvolve) have **weak diversity mechanisms**, converge early, and compensate by throwing expensive models at the problem. This leads to bloated costs and unnecessary complexity.
 
-LEVI fixes the root cause: **CVT-MAP-Elites** with **AST-based behavioral fingerprinting** keeps a diverse archive where each cell holds the best solution for its behavioral niche. Different algorithmic approaches naturally land in different cells, so the system never collapses onto one strategy. We split mutations into two tiers: **cheap small models** (MiMo, Qwen-30B, MiniMax) for hundreds of narrow mutations, and a **larger model** (Gemini Flash) used sparingly for paradigm shifts.
+LEVI fixes the root cause: **CVT-MAP-Elites** with **AST-based behavioral fingerprinting** keeps a diverse archive where each cell holds the best solution for its behavioral niche. Different algorithmic approaches naturally land in different cells, so the system never collapses onto one strategy. We split mutations into two tiers: **cheap small models** (e.g. Qwen-30B) for hundreds of narrow mutations, and a **larger model** (Gemini Flash) used sparingly for paradigm shifts.
 
 Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks at **3-7x lower cost**.
 
@@ -26,6 +26,8 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 | ShinkaEvolve | 67.5 | 72.0 | 68.5 | 87.4 | 63.6 | 45.6 | 68.2 |
 | **LEVI** | **76.7** | **100.0** | **78.3** | **87.4** | **72.4** | **51.7** | **70.4** |
 
+*Table 1: ADRS benchmark scores. LEVI achieves the highest average across all frameworks.*
+
 ### Cost per Problem
 
 | Problem | ADRS Baseline Cost | LEVI Cost | Reduction |
@@ -37,7 +39,7 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 | Spot Single-Reg | ≤$30 | $4.50 | 6.7x |
 | Txn Scheduling | ≤$20 | $4.50 | 4.4x |
 
-LEVI uses a flat **$4.50 per problem** versus the ADRS baselines' $15-$30 range, yielding **3-7x cost reductions** while achieving higher scores.
+*Table 2: Cost comparison. LEVI uses a flat $4.50 per problem versus the baselines' $15-$30, yielding 3-7x reductions.*
 
 ## The Problem with Existing Systems
 
@@ -63,6 +65,8 @@ DSPy optimizes mutation prompts once up front, then producer workers sample pare
 
 ![LEVI System Overview](/images/levi_overview.png)
 
+*Figure 1: LEVI system overview. Producers generate mutations, consumers evaluate in sandboxed subprocesses, and the CVT-MAP-Elites archive maintains behavioral diversity.*
+
 ## Key Components
 
 ### CVT-MAP-Elites Archive
@@ -77,9 +81,26 @@ We use **Centroidal Voronoi Tessellation** (CVT) to define cells via k-means cen
 
 ### Tiered Model Strategy
 
-**Small models** (MiMo, Qwen-30B, MiniMax) handle **90%+ of mutations**: tweaking thresholds, swapping sort keys, adjusting heuristics. Cheap enough to call hundreds of times.
+**Small models** (e.g. Qwen-30B) handle **90%+ of mutations**: tweaking thresholds, swapping sort keys, adjusting heuristics. Cheap enough to call hundreds of times.
 
 **Large models** (Gemini Flash) are used sparingly for **paradigm shifts**: synthesizing the best solutions from different behavioral regions into something fundamentally new.
+
+```
+FunSearch
+·→  ·→  ·→
+   ↗         ↘
+  ·→ ·→ ·→ ·→ ·→ ·→ ·→ ... (millions) ... → ★
+   ↘         ↗
+    ·→  ·→  ·→
+
+
+LEVI
+·═════►  ·→ ·→  ═════►  ·→ ·→  ═════►  ·→ → ★
+              ↘ ·→           ↘ ·→
+              ↗ ·→           ↗ ·→
+```
+
+*Figure 2: FunSearch uses millions of small mutations. LEVI alternates paradigm shifts (═════►) from a larger model with narrow mutations (·→) from smaller models.*
 
 This is implemented via **Punctuated Equilibrium** (every K evaluations):
 
@@ -101,4 +122,4 @@ A one-time **DSPy MIPROv2** pass tunes mutation prompts per model. The metric re
 
 ## Putting It Together
 
-A typical LEVI run: **$4.50 total** ($0.60 prompt optimization + $3.90 evolution), 12 LLM workers, 50 eval workers, punctuated equilibrium every 10 evaluations. Small models handle 90%+ of mutations at fractions of a cent each. Gemini Flash handles paradigm shifts at a few cents each.
+A typical LEVI run: **$4.50 total** ($0.60 prompt optimization + $3.90 evolution), 12 LLM workers, 50 eval workers, punctuated equilibrium every 10 evaluations. Small models (e.g. Qwen-30B) handle 90%+ of mutations at fractions of a cent each. Gemini Flash handles paradigm shifts at a few cents each.
