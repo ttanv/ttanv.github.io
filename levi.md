@@ -26,7 +26,18 @@ With this setup we get ***better*** results than OpenEvolve, ShinkaEvolve, and G
 | ShinkaEvolve | 67.5 | 72.0 | 68.5 | 87.4 | 63.6 | 45.6 | 68.2 |
 | **LEVI** | **76.7** | **100.0** | **78.3** | **87.4** | **72.4** | **51.7** | **70.4** |
 
-Cost savings range from ~3x on problems like Txn Scheduling, to over 10-20x on problems like LLM-SQL and Spot Multi-Reg.
+### Cost per Problem
+
+| Problem | ADRS Baseline Cost | LEVI Cost | Reduction |
+|---|---|---|---|
+| Cloudcast | ≤$15 | $4.50 | 3.3x |
+| LLM-SQL | ≤$20 | $4.50 | 4.4x |
+| Prism | ≤$15 | $4.50 | 3.3x |
+| Spot Multi-Reg | ≤$25 | $4.50 | 5.6x |
+| Spot Single-Reg | ≤$30 | $4.50 | 6.7x |
+| Txn Scheduling | ≤$20 | $4.50 | 4.4x |
+
+LEVI uses a flat $4.50 per problem versus the ADRS baselines' $15-$30 range, yielding 3-7x cost reductions while achieving higher scores.
 
 ## What is lacking in existing systems
 
