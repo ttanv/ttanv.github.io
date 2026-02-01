@@ -8,18 +8,15 @@ permalink: /levi
 
 <details>
 <summary><strong>Example: LEVI-evolved scheduling strategy (Spot Multi-Region, 72.4%)</strong></summary>
-
-This is one of the programs LEVI discovered for the Can't Be Late Multi-Region problem -- scheduling deadline-driven jobs across multiple cloud regions to minimize cost using spot instances. The strategy checks deadline safety first, exploits spot availability across all regions via arbitrage, and falls back to on-demand only when behind schedule.
-
-```python
-import enum
+<p>One of the programs LEVI discovered for the Can't Be Late Multi-Region problem -- scheduling deadline-driven jobs across multiple cloud regions to minimize cost using spot instances. The strategy checks deadline safety first, exploits spot availability across all regions via arbitrage, and falls back to on-demand only when behind schedule.</p>
+<pre><code class="language-python">import enum
 
 class ClusterType(str, enum.Enum):
     NONE = "NONE"
     SPOT = "SPOT"
     ON_DEMAND = "ON_DEMAND"
 
-def strategy_step(ctx, last_cluster_type: ClusterType, has_spot: bool) -> ClusterType:
+def strategy_step(ctx, last_cluster_type: ClusterType, has_spot: bool) -&gt; ClusterType:
     """
     Multi-Region Cloud Instance Scheduling Strategy v2
 
@@ -31,8 +28,8 @@ def strategy_step(ctx, last_cluster_type: ClusterType, has_spot: bool) -> Cluste
 
     Logic Flow:
     1. Deadline Safety Check (Critical)
-    2. Current Region Spot Available? → Use SPOT
-    3. Else: Search ALL regions for SPOT availability → Switch to first available
+    2. Current Region Spot Available? -&gt; Use SPOT
+    3. Else: Search ALL regions for SPOT availability -&gt; Switch to first available
     4. If no spot anywhere: use ON_DEMAND if behind schedule, else wait (NONE) if safe
     """
 
@@ -45,14 +42,14 @@ def strategy_step(ctx, last_cluster_type: ClusterType, has_spot: bool) -> Cluste
     time_left = deadline - now
 
     # Task already finished
-    if remaining_work <= 0:
+    if remaining_work &lt;= 0:
         return ClusterType.NONE
 
     # --- 1. DEADLINE SAFETY: Point of No Return (PNR) ---
     required_time = remaining_work + ctx.restart_overhead
     safety_threshold = required_time * 1.05
 
-    if time_left <= safety_threshold:
+    if time_left &lt;= safety_threshold:
         return ClusterType.SPOT if has_spot else ClusterType.ON_DEMAND
 
     # --- 2. Check Current Region Spot Availability ---
@@ -74,13 +71,13 @@ def strategy_step(ctx, last_cluster_type: ClusterType, has_spot: bool) -> Cluste
     expected_progress = ideal_rate * now
     progress_deviation = done_work - expected_progress
 
-    if progress_deviation < 0:
+    if progress_deviation &lt; 0:
         return ClusterType.ON_DEMAND
 
     slack = time_left - remaining_work
     min_slack = max(3600.0, deadline * 0.05)
 
-    if slack > min_slack:
+    if slack &gt; min_slack:
         tick_index = int(now // env.gap_seconds)
         if tick_index % 10 == 0:
             next_region = (current_region + 1) % num_regions
@@ -88,8 +85,7 @@ def strategy_step(ctx, last_cluster_type: ClusterType, has_spot: bool) -> Cluste
         return ClusterType.NONE
 
     return ClusterType.ON_DEMAND
-```
-
+</code></pre>
 </details>
 
 ## TLDR
