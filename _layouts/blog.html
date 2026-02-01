@@ -236,7 +236,7 @@
     <p class="blog-subtitle">{{ page.subtitle | markdownify | remove: '<p>' | remove: '</p>' }}</p>
     {% endif %}
     {% if page.date %}
-    <div class="blog-date">{{ page.date | date: "%B %d, %Y" }}</div>
+    <div class="blog-date">{{ page.date | date: "%B %Y" }}</div>
     {% endif %}
     {{ content }}
   </div>

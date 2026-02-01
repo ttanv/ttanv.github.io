@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "LEVI: LLM-Guided Evolution for the Price of a Cup of Coffee"
-date:   2026-02-01 00:00:00 +00:00
+date:   2026-01-01 00:00:00 +00:00
 image: /images/levi_overview.png
 categories: Intel
 author: "Temoor Ali"
