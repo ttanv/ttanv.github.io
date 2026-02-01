@@ -17,6 +17,8 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 
 ### ADRS Benchmark Results (% score)
 
+[ADRS](https://ucbskyadrs.github.io/) is a benchmark suite from UC Berkeley for evaluating LLM-guided optimization on real-world systems problems -- cloud scheduling, load balancing, congestion control, SQL optimization, and more.
+
 | Framework | Average | Cloudcast | LLM-SQL | Prism | Spot Multi-Reg | Spot Single-Reg | Txn Scheduling |
 |---|---|---|---|---|---|---|---|
 | Human SOTA | 61.7 | 100.0 | 67.7 | 60.8 | 54.5 | 45.1 | 41.9 |
