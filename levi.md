@@ -17,14 +17,16 @@ With this setup we get ***better*** results than OpenEvolve, ShinkaEvolve, and G
 
 ### ADRS Benchmark Results (% score)
 
-| Framework | Contributor | Cloudcast | LLM-SQL | Prism | Spot Multi-Reg | Spot Single-Reg | Txn Scheduling |
+| Framework | Average | Cloudcast | LLM-SQL | Prism | Spot Multi-Reg | Spot Single-Reg | Txn Scheduling |
 |---|---|---|---|---|---|---|---|
-| Human SOTA | - | 58.3 | 45.8 | 33.7 | 60.8 | 54.5 | 50.6 |
-| ShinkaEvolve | ADRS Team | 69.8 | 66.4 | - | 87.4 | 63.6 | 86.5 |
-| OpenEvolve | ADRS Team | 72.9 | 62.0 | - | 87.4 | 66.7 | 88.9 |
-| GEPA | ADRS Team | 73.6 | 70.2 | - | 87.4 | 62.2 | 85.5 |
-| AutoEvolve | ADRS Team | 75.9 | 70.2 | - | 87.4 | 70.0 | 88.9 |
-| **LEVI (1/3rd budget)** | **Ours** | **100.0** | **78.3** | **87.4** | **72.4** | **51.7** | **70.4** |
+| Human SOTA | 61.7 | 100.0 | 67.7 | 60.8 | 54.5 | 45.1 | 41.9 |
+| AutoEvolve | 74.9 | 97.8 | 76.4 | 87.4 | 70.0 | 46.3 | 70.6 |
+| GEPA | 72.7 | 96.6 | 67.7 | 87.4 | 62.2 | 51.4 | 67.7 |
+| OpenEvolve | 72.0 | 92.9 | 72.5 | 87.4 | 66.7 | 42.5 | 70.0 |
+| ShinkaEvolve | 67.5 | 72.0 | 68.5 | 87.4 | 63.6 | 45.6 | 68.2 |
+| **LEVI** | **76.7** | **100.0** | **78.3** | **87.4** | **72.4** | **51.7** | **70.4** |
+
+Cost savings range from ~3x on problems like Txn Scheduling, to over 10-20x on problems like LLM-SQL and Spot Multi-Reg.
 
 ## What is lacking in existing systems
 
