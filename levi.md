@@ -2,7 +2,7 @@
 layout: blog
 title: "LEVI: LLM-Guided Evolution for the Price of a Cup of Coffee"
 subtitle: "An open-source evolutionary framework for algorithmic discovery."
-date: 2026-01-01
+date: 2026-02-01
 permalink: /levi
 ---
 
