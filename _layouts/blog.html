@@ -85,6 +85,12 @@
       font-size: 2rem;
       margin-bottom: 0.25rem;
     }
+    .blog-subtitle {
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 0.25rem 0 0.5rem 0;
+    }
     .blog-date {
       color: var(--text-secondary);
       font-size: 14px;
@@ -226,6 +232,9 @@
   <div class="blog-content">
     <a class="blog-back" href="/">&larr; Back to home</a>
     <h1>{{ page.title }}</h1>
+    {% if page.subtitle %}
+    <p class="blog-subtitle">{{ page.subtitle }}</p>
+    {% endif %}
     {% if page.date %}
     <div class="blog-date">{{ page.date | date: "%B %d, %Y" }}</div>
     {% endif %}
