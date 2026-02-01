@@ -7,13 +7,13 @@ permalink: /levi
 
 ## TLDR
 
-Existing LLM-based evolutionary systems (OpenEvolve, ShinkaEvolve) have weak diversity mechanisms, converge early, and compensate by throwing expensive models at the problem. This leads to bloated costs and unnecessary complexity: rejection sampling, embedding-based deduplication, LLM-as-judge filters.
+Existing LLM-based evolutionary systems (OpenEvolve, ShinkaEvolve) have **weak diversity mechanisms**, converge early, and compensate by throwing expensive models at the problem. This leads to bloated costs and unnecessary complexity.
 
-We fix the root cause. LEVI uses CVT-MAP-Elites with AST-based behavioral fingerprinting (loop depth, branch count, cyclomatic complexity, etc.) to maintain a diverse archive where each cell holds the single best solution for its behavioral niche. Different algorithmic approaches naturally land in different cells, so the system never collapses onto one strategy. On top of this, we split the mutation process into two tiers: cheap small models (MiMo, Qwen-30B, MiniMax) making hundreds of narrow mutations, and a larger model (Gemini Flash) used sparingly for paradigm shifts that jump to entirely new regions of the solution space.
+LEVI fixes the root cause: **CVT-MAP-Elites** with **AST-based behavioral fingerprinting** keeps a diverse archive where each cell holds the best solution for its behavioral niche. Different algorithmic approaches naturally land in different cells, so the system never collapses onto one strategy. We split mutations into two tiers: **cheap small models** (MiMo, Qwen-30B, MiniMax) for hundreds of narrow mutations, and a **larger model** (Gemini Flash) used sparingly for paradigm shifts.
 
-With this setup we get ***better*** results than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks (Cloudcast, EPLB) at 1/3rd the budget. The improvement holds across prompt optimization, heuristic design, and general coding problems.
+Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks at **3-7x lower cost**.
 
-**LEVI is open-source at github.com.** Async producer-consumer pipeline, subprocess sandboxing, built-in dollar-budget enforcement. Point it at a scoring function and a seed program and it runs until the budget is spent.
+**LEVI is open-source at github.com.** Point it at a scoring function and a seed program and it runs until the budget is spent.
 
 ### ADRS Benchmark Results (% score)
 
@@ -37,115 +37,68 @@ With this setup we get ***better*** results than OpenEvolve, ShinkaEvolve, and G
 | Spot Single-Reg | ≤$30 | $4.50 | 6.7x |
 | Txn Scheduling | ≤$20 | $4.50 | 4.4x |
 
-LEVI uses a flat $4.50 per problem versus the ADRS baselines' $15-$30 range, yielding 3-7x cost reductions while achieving higher scores.
+LEVI uses a flat **$4.50 per problem** versus the ADRS baselines' $15-$30 range, yielding **3-7x cost reductions** while achieving higher scores.
 
-## What is lacking in existing systems
+## The Problem with Existing Systems
 
-The current open-source ecosystem is focused on optimizing fundamentally incorrect parts of the LLM-based evolution stack; leading to increased costs and a higher barrier of entry for researchers with limited resources. They try using unnecessarily large LLMs, add additional costs through using LLM-based judges or extract embeddings, and converge too soon to yield a truly powerful result. Their usage of large LLMs like Claude Sonnet 4.5, Gemini 3.0 Pro, GPT 5.2 is not a problem in of itself, but rather a byproduct of the underlying problems. If your evolutionary system stagnates within a few hundred or so generations, it is no surprise you resort to using the strongest models, you want to make the most out of those few generations.
+The open-source LLM evolution ecosystem optimizes the **wrong parts of the stack**. Systems use large LLMs (Claude Sonnet 4.5, Gemini 3.0 Pro, GPT 5.2), add LLM-as-judge filters and embedding-based deduplication, and still converge within a few hundred generations. The expensive models aren't the cause -- they're a **symptom of early stagnation**. If your system plateaus quickly, of course you want the strongest model for each generation.
 
-But you may ask: how do you know a few hundred generations is not enough? Why would a thousand or 10 thousand be enough? That's a very good question. Unfortunately we don't really have some elaborate study on this to clearly understand it. The closest thing we have is Deepmind's FunSearch and AlphaEvolve systems (not many other players can just burn through enough cash to answer these questions), where funsearch needed on the order of a million generations, and AlphaEvolve needed on the order of thousands. Furthermore, FunSearch originally claimed that their system does not even benefit from larger LLMs! It is only around AlphaEvolve that they were able to harness them.
+How do we know more generations help? DeepMind's **FunSearch** needed ~1 million generations; **AlphaEvolve** needed thousands. FunSearch even found that larger LLMs didn't help -- it was only AlphaEvolve that could harness them.
 
-But I am not entirely sure it is the fault of these systems or the users using them. Even if the systems themselves survive stagnation and can run for much longer, works that use these systems are also seem to have this notion of using the strongest model for every generation and burning through cash.
+LEVI aims to dismiss two notions:
 
-Thus I will try to dismiss the following notions with this work:
+- **"LLM evolution must be expensive"** -- we show 3-7x budget reductions
+- **"You need SOTA models"** -- we mainly use 30B-100B models, with Gemini Flash sparingly
 
-- LLM-Based evolution needs to be very expensive
-    - We will show it can be done with 1/3rd to 1/10th of the budget of existing works
-- It can only be done with SOTA models
-    - We will mainly use smaller 30B-100B models mainly and occasionally use models like Gemini Flash 3
+## How LEVI Fixes This
 
-## How LEVI aims to fix them
+Two core improvements:
 
-We improve on existing works in two core places:
+1. **Better diversity maintenance** in the solution archive
+2. **Smarter model allocation** -- cheap models for refinement, expensive models only for paradigm shifts
 
-- The diversity maintenance in the pool of solutions tracked so far.
-- How to best extract the most benefit from larger models without ballooning the costs.
-
-## LEVI System Design
+## System Design
 
 DSPy optimizes mutation prompts once up front, then producer workers sample parents from the CVT-MAP-Elites archive via LiteLLM, push candidate code through an asyncio queue, and consumer workers evaluate each candidate in a sandboxed subprocess. The archive only accepts improvements per behavioral niche. Punctuated Equilibrium periodically triggers paradigm shifts, and a budget manager shuts everything down when the dollar/eval/time limit is hit.
 
 ![LEVI System Overview](/images/levi_overview.png)
 
-## Core Abstractions
+## Key Components
 
-### CVT-MAP-Elites
+### CVT-MAP-Elites Archive
 
-The archive is the heart of LEVI. MAP-Elites is a quality-diversity algorithm: instead of tracking just the single best solution, it partitions the space of possible solution *behaviors* into cells and keeps the single best-scoring program in each cell. This means the archive simultaneously maintains many high-quality solutions that are behaviorally *different* from each other. A greedy approach and a dynamic programming approach can coexist, each the best of its kind.
+**MAP-Elites** is a quality-diversity algorithm: instead of tracking one best solution, it partitions solution *behaviors* into cells and keeps the **single best program per cell**. A greedy approach and a DP approach coexist, each the best of its kind.
 
-We use Centroidal Voronoi Tessellation (CVT) to define the cells. The behavior space is partitioned into regions via k-means centroids, and each program is assigned to its nearest centroid. If the cell is empty, the program moves in. If the cell is occupied, the new program replaces the incumbent only if it scores higher. This is the elitism rule that ensures each cell always holds the strongest solution found so far for that behavioral niche.
+We use **Centroidal Voronoi Tessellation** (CVT) to define cells via k-means centroids. Programs are assigned to their nearest centroid. Empty cell? Move in. Occupied? Replace only if the new score is higher.
 
-What defines "behavior"? We use AST-based features extracted directly from the code's structure. Things like loop nesting depth, number of comparisons, branch count, cyclomatic complexity, math operator count. These fingerprint the *shape* of an algorithm without running it. A greedy scheduler that iterates once over transactions and a DP approach with nested loops will naturally land in different cells, even before we evaluate their scores. Each problem selects its own subset of these features as behavioral dimensions, and raw values are normalized to [0,1] so k-means can operate in a consistent space.
+**Behavior is defined by AST features**: loop depth, branch count, cyclomatic complexity, math operators, etc. These fingerprint the *shape* of an algorithm without running it. A greedy scheduler and a DP approach with nested loops naturally land in different cells.
 
-To select parents for mutation, we use softmax sampling over the archive cells, weighted by fitness. The temperature parameter controls the exploration/exploitation tradeoff: low temperature (T=0.3) heavily favors high-scoring cells, high temperature (T=1.2) samples nearly uniformly. We run multiple temperature settings simultaneously in the same run, so the archive is being explored from multiple angles at once, some greedily exploiting the best solutions while others broadly exploring underrepresented regions.
+**Parent selection** uses softmax sampling weighted by fitness, with multiple temperatures running simultaneously -- some greedily exploiting top solutions, others broadly exploring.
 
-### Archive Init
+### Tiered Model Strategy
 
-We use a data-driven initialization. A heavier model (e.g., Gemini Flash) generates N fundamentally diverse seed algorithms. The prompt explicitly instructs the model to analyze existing seeds and design something using a *completely different algorithmic paradigm*. Each new seed sees all previously generated seeds to avoid repetition. Then lighter models generate M variants per seed. All programs are evaluated, behaviors extracted, and k-means is run on the actual behavior vectors to create centroids that reflect the real distribution of algorithmic approaches.
+**Small models** (MiMo, Qwen-30B, MiniMax) handle **90%+ of mutations**: tweaking thresholds, swapping sort keys, adjusting heuristics. Cheap enough to call hundreds of times.
 
-Optionally, Gaussian noise is added to behavior vectors during init to prevent centroid overfitting to the specific code shapes seen. Once init finishes, noise is turned off for the evolution phase.
+**Large models** (Gemini Flash) are used sparingly for **paradigm shifts**: synthesizing the best solutions from different behavioral regions into something fundamentally new.
 
-### Utilizing both smaller and larger models effectively
+This is implemented via **Punctuated Equilibrium** (every K evaluations):
 
-The core insight is that smaller and larger models serve fundamentally different roles in the search process. Smaller models (MiMo-V2-Flash, Qwen3-30B, MiniMax-M2.1) make narrow mutations: tweak a threshold, swap a sorting key, adjust a heuristic. They are cheap enough to call hundreds of times, and their mutations stay close to the parent in behavior space. This is the fine-grained hill climbing that improves solutions within their current algorithmic paradigm.
-
-Larger models (Gemini Flash 3) are used sparingly for *paradigm shifts*: looking at the best solutions from different behavioral regions, analyzing their strategies, and proposing something fundamentally different. This is not a mutation. It's a synthesis step where the model sees the landscape of what has been tried and explicitly designs a new approach that fills the gaps.
-
-```
-FunSearch
-·→  ·→  ·→
-   ↗         ↘
-  ·→ ·→ ·→ ·→ ·→ ·→ ·→ ... (millions) ... → ★
-   ↘         ↗
-    ·→  ·→  ·→
-
-
-LEVI
-·═════►  ·→ ·→  ═════►  ·→ ·→  ═════►  ·→ → ★
-              ↘ ·→           ↘ ·→
-              ↗ ·→           ↗ ·→
-```
-
-The `═════►` arrows are paradigm shifts from the larger model. The `·→` arrows are narrow mutations from smaller models. After each paradigm shift, smaller models take the new solution and refine it, exploring its local neighborhood. Then another paradigm shift happens, potentially jumping to an entirely different region of the solution space.
-
-This is implemented through **Punctuated Equilibrium**, which triggers every N evaluations (e.g., every 5 or 10). When triggered, it:
-
-1. **Clusters** the occupied archive cells into behavioral regions using k-means on the centroid vectors.
-2. **Selects representatives**: the highest-scoring elite from each cluster.
-3. **Generates a paradigm shift**: sends all representatives to the heavy model with a budget-stage-aware prompt. Early in the run (<30% budget), the prompt demands radical departures. Mid-run (30-60%), it asks for synthesis of the best ideas across regions. Late (>60%), it asks for surgical refinement of the best solution's weak spots.
-4. **Generates variants**: sends the paradigm shift solution to lighter models for minor improvements.
-5. **Inserts with behavior noise**: paradigm shifts are added to the archive with Gaussian noise on their behavior vectors, letting them explore adjacent cells rather than being forced into a single slot.
-
-The result is a system where 90%+ of the budget goes to cheap small-model mutations, and the remaining 5-10% goes to expensive but high-impact paradigm shifts that prevent stagnation.
+1. **Cluster** archive cells into behavioral regions
+2. **Pick** the best elite from each cluster
+3. **Generate a paradigm shift** with the heavy model (prompt adapts to budget stage: radical early, synthesis mid-run, surgical refinement late)
+4. **Generate variants** with lighter models
+5. **Insert with noise** on behavior vectors to explore adjacent cells
 
 ### Prompt Optimization
 
-Before evolution begins, we optionally run a DSPy-based prompt optimization pass (MIPROv2) that tunes the mutation instruction prompt for each model separately. The metric rewards prompts that produce compilable, runnable, score-improving code and penalizes prompts that are too long or too prescriptive. We want prompts that say *what* to achieve, not *how*. "Use dynamic programming with memoization" locks the model into one paradigm; "find a fundamentally better approach" lets it explore. Optimized prompts are cached as JSON (~$0.60 one-time cost) and reused across runs.
+A one-time **DSPy MIPROv2** pass tunes mutation prompts per model. The metric rewards compilable, score-improving code and penalizes overly prescriptive prompts. Cached as JSON for **~$0.60**.
 
-### Async Pipeline (Producer-Consumer)
+### Async Pipeline
 
-The evolution runs as an async producer-consumer pipeline. N LLM producer workers sample parents from the archive, build prompts, call LLMs, extract code, and push to an asyncio queue. M evaluation consumer workers pull from the queue, evaluate code in isolated subprocesses, and update the archive.
+**N producer workers** sample parents, call LLMs, push code to an asyncio queue. **M consumer workers** evaluate in sandboxed subprocesses (`ResilientProcessPool` with hard SIGKILL timeouts). Archive access is lock-protected but contention stays low since LLM calls and evaluations happen outside the lock.
 
-Evaluation happens in true subprocesses via `ResilientProcessPool`. This gives us hard timeout enforcement (SIGTERM then SIGKILL), memory isolation (a malformed program can't corrupt the parent process), and true parallelism past the GIL. Each evaluation runs the candidate code via `exec()` in a fresh namespace, extracts the target function, and calls the user-provided `score_fn`.
+**Budget enforcement is by-construction**: the pipeline checks dollars, eval count, and wall time before every LLM call and shuts down cleanly when any limit is hit.
 
-The archive is protected by an asyncio lock. Producers acquire it briefly to sample parents; consumers acquire it briefly to update the archive after evaluation. The actual LLM calls and evaluations happen outside the lock, keeping contention low.
+## Putting It Together
 
-Budget enforcement is by-construction: the pipeline checks `state.budget_exhausted` (tracking dollars, evaluations, and wall time) before every LLM call. When the budget hits the limit, producers stop, consumers drain the queue, and the run ends cleanly with a final snapshot.
-
-## Complete System
-
-Putting it all together, a LEVI run proceeds as:
-
-1. **Setup**: Initialize the LLM client (routing local and cloud models), the behavior extractor (with problem-specific AST features), and the CVT-MAP-Elites pool (with deferred centroids).
-
-2. **Seed evaluation**: Evaluate the user-provided seed program in a subprocess. This is the baseline score.
-
-3. **Init phase** (optional): The Diversifier generates N diverse seeds with the heavy model, then M variants per seed with lighter models. Behaviors are extracted, k-means builds centroids from the real data, and the archive is populated with 30-100+ diverse solutions.
-
-4. **Evolution pipeline**: N producer workers and M consumer workers run concurrently. Producers sample parents via softmax at various temperatures, call LLMs, extract code. Consumers evaluate in subprocesses, update the archive. Punctuated equilibrium triggers paradigm shifts every K evaluations.
-
-5. **Budget exhaustion**: When the dollar budget is hit, producers stop, consumers drain, and a final snapshot is saved with the full archive state, score history, and sampler statistics.
-
-6. **Result**: The best program found across all cells, along with total cost, evaluation count, and the full score progression.
-
-A typical run on transaction scheduling uses $4.50 in total ($0.60 for prompt optimization, $3.90 for evolution), runs 12 LLM workers and 50 eval workers concurrently, and triggers punctuated equilibrium every 10 evaluations. The light models (MiMo, Qwen, MiniMax) handle 90%+ of mutations at fractions of a cent each. Gemini Flash handles paradigm shifts at a few cents each.
+A typical LEVI run: **$4.50 total** ($0.60 prompt optimization + $3.90 evolution), 12 LLM workers, 50 eval workers, punctuated equilibrium every 10 evaluations. Small models handle 90%+ of mutations at fractions of a cent each. Gemini Flash handles paradigm shifts at a few cents each.
