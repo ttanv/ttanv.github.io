@@ -1,7 +1,7 @@
 ---
 layout: blog
 title: "LEVI: Budget-Efficient LLM-Guided Evolution"
-date: 2024-06-01
+date: 2026-02-01
 permalink: /levi
 ---
 
