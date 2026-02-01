@@ -63,50 +63,9 @@ We improve on existing works in two core places:
 
 ## LEVI System Design
 
-![LEVI System Overview](/images/levi_overview.png)
+DSPy optimizes mutation prompts once up front, then producer workers sample parents from the CVT-MAP-Elites archive via LiteLLM, push candidate code through an asyncio queue, and consumer workers evaluate each candidate in a sandboxed subprocess. The archive only accepts improvements per behavioral niche. Punctuated Equilibrium periodically triggers paradigm shifts, and a budget manager shuts everything down when the dollar/eval/time limit is hit.
 
-```
-                              LEVI System Overview
- ┌──────────────────────────────────────────────────────────────────────────┐
- │                                                                          │
- │   ┌─────────────┐        ┌──────────────────────────────────────────┐   │
- │   │  DSPy Prompt │        │         CVT-MAP-Elites Archive          │   │
- │   │ Optimization │        │                                          │   │
- │   │  (one-time)  │        │  ┌────┬────┬────┬────┬────┬────┬────┐   │   │
- │   └──────┬───────┘        │  │ c0 │ c1 │ c2 │    │ c5 │    │ c7 │   │   │
- │          │                │  │★83 │★71 │★69 │    │★77 │    │★65 │   │   │
- │          │ optimized      │  └────┴────┴────┴────┴────┴────┴────┘   │   │
- │          │ prompts        │   Each cell = 1 centroid, keeps best     │   │
- │          ▼                │   program by score. Empty cells = open.  │   │
- │   ┌──────────────┐       └───────────────┬──────────────────────────┘   │
- │   │              │ sample parents         │ add if score > existing     │
- │   │  N Producer  │◄──────────────────────►│                             │
- │   │   Workers    │                        │                             │
- │   │              │        ┌───────────┐   │                             │
- │   │  MiMo, Qwen, │──────►│ code_queue │──►│  M Consumer Workers        │
- │   │  MiniMax,    │ push   └───────────┘   │                             │
- │   │  Gemini      │ code        pull code  │  Evaluate in subprocess     │
- │   └──────────────┘                        │  (exec + score_fn)          │
- │          ▲                                │  Hard timeout (SIGKILL)     │
- │          │                                │                             │
- │   ┌──────┴───────────────────────────┐    │                             │
- │   │   Punctuated Equilibrium         │    │                             │
- │   │   (every K evals)                │    │                             │
- │   │                                  │    │                             │
- │   │   1. Cluster archive cells       │    │                             │
- │   │   2. Pick best per cluster       │    │                             │
- │   │   3. Heavy model: paradigm shift │    │                             │
- │   │   4. Light models: variants      │    │                             │
- │   │   5. Insert with behavior noise  │    │                             │
- │   └──────────────────────────────────┘    │                             │
- │                                           │                             │
- │   ┌──────────────────────────────────┐    │                             │
- │   │   Budget Manager                 │    │                             │
- │   │   Tracks: $dollars, #evals, time │    │                             │
- │   │   Stops everything when exhaust. │    │                             │
- │   └──────────────────────────────────┘    │                             │
- └──────────────────────────────────────────────────────────────────────────┘
-```
+![LEVI System Overview](/images/levi_overview.png)
 
 ## Core Abstractions
 
