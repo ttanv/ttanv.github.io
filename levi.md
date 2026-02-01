@@ -1,6 +1,6 @@
 ---
 layout: blog
-title: "LEVI: Budget-Efficient LLM-Guided Evolution"
+title: "LEVI: LLM-Guided Evolution for the Price of a Cup of Coffee"
 date: 2026-02-01
 permalink: /levi
 ---
