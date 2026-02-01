@@ -52,6 +52,8 @@ We improve on existing works in two core places:
 
 ## LEVI System Design
 
+![LEVI System Overview](/images/levi_overview.png)
+
 ```
                               LEVI System Overview
  ┌──────────────────────────────────────────────────────────────────────────┐

@@ -2,7 +2,7 @@
 layout: post
 title:  "LEVI: Budget-Efficient LLM-Guided Evolution"
 date:   2024-06-01 00:00:00 +00:00
-image: /images/cevolve.png
+image: /images/levi_overview.png
 categories: Intel
 author: "Temoor Ali"
 blog_url: /levi
