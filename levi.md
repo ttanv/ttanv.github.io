@@ -13,7 +13,7 @@ LEVI fixes the root cause: **CVT-MAP-Elites** with **AST-based behavioral finger
 
 Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks at **3-7x lower cost**.
 
-**LEVI is open-source at github.com.** Point it at a scoring function and a seed program and it runs until the budget is spent.
+**LEVI will be open-sourced on GitHub soon.** Point it at a scoring function and a seed program and it runs until the budget is spent.
 
 ### ADRS Benchmark Results (% score)
 
@@ -112,7 +112,7 @@ This is implemented via **Punctuated Equilibrium** (every K evaluations):
 
 ### Prompt Optimization
 
-A one-time **DSPy MIPROv2** pass tunes mutation prompts per model. The metric rewards compilable, score-improving code and penalizes overly prescriptive prompts. Cached as JSON for **~$0.60**.
+A one-time **DSPy MIPROv2** pass tunes mutation prompts per model. The metric rewards compilable, score-improving code and penalizes overly prescriptive prompts.
 
 ### Async Pipeline
 
@@ -122,4 +122,4 @@ A one-time **DSPy MIPROv2** pass tunes mutation prompts per model. The metric re
 
 ## Putting It Together
 
-A typical LEVI run: **$4.50 total** ($0.60 prompt optimization + $3.90 evolution), 12 LLM workers, 50 eval workers, punctuated equilibrium every 10 evaluations. Small models (e.g. Qwen-30B) handle 90%+ of mutations at fractions of a cent each. Gemini Flash handles paradigm shifts at a few cents each.
+A typical LEVI run: **$4.50 total**, 12 LLM workers, 50 eval workers, punctuated equilibrium every 10 evaluations. Small models (e.g. Qwen-30B) handle 90%+ of mutations at fractions of a cent each. Gemini Flash handles paradigm shifts at a few cents each.
