@@ -243,7 +243,12 @@
           <tr>
             <td style="padding:2.5%;width:35%;vertical-align:middle;min-width:200px">
               {% if post.image %}
+              {% if post.image_dark %}
+              <img src="{{post.image}}" alt="project image" class="img-light" style="width:100%; height:auto; max-width:100%;" onerror="this.style.display='none';" />
+              <img src="{{post.image_dark}}" alt="project image" class="img-dark" style="width:100%; height:auto; max-width:100%;" onerror="this.style.display='none';" />
+              {% else %}
               <img src="{{post.image}}" alt="project image" style="width:100%; height:auto; max-width:100%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              {% endif %}
               <div class="img-placeholder" style="display:none;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">Image coming soon</div>
               {% else %}
               <div class="img-placeholder" style="display:flex;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">No image</div>

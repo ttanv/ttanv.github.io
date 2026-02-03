@@ -32,6 +32,16 @@
   }
 }
 
+// Dark/light image swap
+.img-dark { display: none; }
+.img-light { display: inline; }
+[data-theme="dark"] .img-dark { display: inline; }
+[data-theme="dark"] .img-light { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .img-dark { display: inline; }
+  :root:not([data-theme="light"]) .img-light { display: none; }
+}
+
 // Manual dark mode toggle support
 [data-theme="dark"] {
   --bg-color: #111111;
