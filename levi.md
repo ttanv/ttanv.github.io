@@ -94,7 +94,7 @@ Existing LLM-based evolutionary systems (OpenEvolve, ShinkaEvolve) have **weak d
 
 LEVI fixes the root cause: **CVT-MAP-Elites** with **AST-based behavioral fingerprinting** keeps a diverse archive where each cell holds the best solution for its behavioral niche. Different algorithmic approaches naturally land in different cells, so the system never collapses onto one strategy. We split mutations into two tiers: **cheap small models** (e.g. Qwen-30B) for hundreds of narrow mutations, and a **larger model** (Gemini Flash) used sparingly for paradigm shifts.
 
-Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks at **3-7x lower cost**.
+Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks at **1.5-6.7x lower cost**.
 
 **LEVI will be open-sourced on GitHub soon.** Point it at a scoring function and a seed program and it runs until the budget is spent.
 
@@ -102,14 +102,14 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 
 [ADRS](https://ucbskyadrs.github.io/) is a benchmark suite from UC Berkeley for evaluating LLM-guided optimization on real-world systems problems -- cloud scheduling, load balancing, congestion control, SQL optimization, and more.
 
-| Framework | Average | Cloudcast | LLM-SQL | Prism | Spot Multi-Reg | Spot Single-Reg | Txn Scheduling |
-|---|---|---|---|---|---|---|---|
-| Human SOTA | 61.7 | 100.0 | 67.7 | 60.8 | 54.5 | 45.1 | 41.9 |
-| AutoEvolve | 74.9 | 97.8 | 76.4 | 87.4 | 70.0 | 46.3 | 70.6 |
-| GEPA | 72.7 | 96.6 | 67.7 | 87.4 | 62.2 | 51.4 | 67.7 |
-| OpenEvolve | 72.0 | 92.9 | 72.5 | 87.4 | 66.7 | 42.5 | 70.0 |
-| ShinkaEvolve | 67.5 | 72.0 | 68.5 | 87.4 | 63.6 | 45.6 | 68.2 |
-| **LEVI** | **76.7** | **100.0** | **78.3** | **87.4** | **72.4** | **51.7** | **70.4** |
+| Framework | Average | Cloudcast | EPLB | LLM-SQL | Prism | Spot Multi-Reg | Spot Single-Reg | Txn Scheduling |
+|---|---|---|---|---|---|---|---|---|
+| Human SOTA | 59.4 | 100.0 | 45.8 | 67.7 | 60.8 | 54.5 | 45.1 | 41.9 |
+| AutoEvolve | 74.1 | 97.8 | 70.2 | 76.4 | 87.4 | 70.0 | 46.3 | 70.6 |
+| GEPA | 71.9 | 96.6 | 70.2 | 67.7 | 87.4 | 62.2 | 51.4 | 67.7 |
+| OpenEvolve | 70.6 | 92.9 | 62.0 | 72.5 | 87.4 | 66.7 | 42.5 | 70.0 |
+| ShinkaEvolve | 67.4 | 72.0 | 66.4 | 68.5 | 87.4 | 63.6 | 45.6 | 68.2 |
+| **LEVI** | **76.5** | **100.0** | **74.6** | **78.3** | **87.4** | **72.4** | **51.7** | **71.1** |
 
 *Table 1: ADRS benchmark scores. LEVI achieves the highest average across all frameworks.*
 
@@ -118,13 +118,14 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 | Problem | ADRS Baseline Cost | LEVI Cost | Reduction |
 |---|---|---|---|
 | Cloudcast | ≤$15 | $4.50 | 3.3x |
+| EPLB | <$15 | $4.50 | <3.3x |
 | LLM-SQL | ≤$20 | $4.50 | 4.4x |
 | Prism | ≤$15 | $4.50 | 3.3x |
 | Spot Multi-Reg | ≤$25 | $4.50 | 5.6x |
 | Spot Single-Reg | ≤$30 | $4.50 | 6.7x |
-| Txn Scheduling | ≤$20 | $4.50 | 4.4x |
+| Txn Scheduling | ≤$20 | $13 | 1.5x |
 
-*Table 2: Cost comparison. LEVI uses a flat $4.50 per problem versus the baselines' $15-$30, yielding 3-7x reductions.*
+*Table 2: Cost comparison. LEVI uses $4.50 on most tasks (Txn Scheduling is $13) versus the baselines' $15-$30, yielding 1.5-6.7x reductions.*
 
 ## The Problem with Existing Systems
 
@@ -134,7 +135,7 @@ How do we know more generations help? DeepMind's **FunSearch** needed ~1 million
 
 LEVI aims to dismiss two notions:
 
-- **"LLM evolution must be expensive"** -- we show 3-7x budget reductions
+- **"LLM evolution must be expensive"** -- we show 1.5-6.7x budget reductions
 - **"You need SOTA models"** -- we mainly use 30B-100B models, with Gemini Flash sparingly
 
 ## How LEVI Fixes This
