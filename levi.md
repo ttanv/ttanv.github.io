@@ -7,84 +7,126 @@ permalink: /levi
 ---
 
 <details>
-<summary><strong>Example: LEVI-evolved scheduling strategy (Spot Multi-Region, 72.4%)</strong></summary>
-<p>One of the programs LEVI discovered for the Can't Be Late Multi-Region problem -- scheduling deadline-driven jobs across multiple cloud regions to minimize cost using spot instances. The strategy checks deadline safety first, exploits spot availability across all regions via arbitrage, and falls back to on-demand only when behind schedule.</p>
-<pre><code class="language-python">import enum
+<summary><strong>Example: LEVI-evolved EPLB strategy (74.6%)</strong></summary>
+<p>One of the programs LEVI discovered for EPLB (Expert Parallel Load Balancing) -- replicating and assigning MoE experts across GPUs to minimize imbalance. This strategy uses greedy apportionment to decide replica counts, then a snake-mapping placement to spread hot experts evenly across devices.</p>
+<pre><code class="language-python">import torch
 
-class ClusterType(str, enum.Enum):
-    NONE = "NONE"
-    SPOT = "SPOT"
-    ON_DEMAND = "ON_DEMAND"
+def rebalance_experts(
+    weight: torch.Tensor,
+    num_replicas: int,
+    num_groups: int,
+    num_nodes: int,
+    num_gpus: int,
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    '''
+    Rearrange and replicate logical experts across physical GPU slots.
+    Optimized for load balance using Greedy Apportionment and Snake Mapping.
 
-def strategy_step(ctx, last_cluster_type: ClusterType, has_spot: bool) -&gt; ClusterType:
-    """
-    Multi-Region Cloud Instance Scheduling Strategy v2
+    Parameters:
+        weight: [layers, 64] load statistics
+        num_replicas: 288 (physical experts)
+        num_groups: 8
+        num_nodes: 4
+        num_gpus: 32
 
-    Optimized for:
-    - Deadline compliance (0 score = failure)
-    - Cost minimization via spot instance exploitation
-    - Efficient cross-region switching with validation
-    - Avoiding over-reliance on correlated regions
+    Returns:
+        physical_to_logical_map: [layers, 288] (values 0-63)
+        logical_to_physical_map: [layers, 64, X] (physical indices or -1)
+        expert_count: [layers, 64] (number of replicas per expert)
+    '''
+    num_layers, num_logical = weight.shape
+    device = weight.device
+    slots_per_gpu = num_replicas // num_gpus # 9
+    
+    # --- 1. Expert Apportionment (Greedy) ---
+    # Every expert must have at least 1 replica
+    expert_count = torch.ones((num_layers, num_logical), dtype=torch.int64, device=device)
+    
+    # Remaining 224 slots per layer
+    remaining = num_replicas - num_logical
+    
+    # Work with float64 for precision
+    w_float = weight.to(torch.float64) + 1e-12
+    current_counts = expert_count.clone().to(torch.float64)
+    
+    # Assign remaining slots to experts with highest load-per-replica
+    # Vectorized across layers
+    for _ in range(remaining):
+        priority = w_float / current_counts
+        best_expert = torch.argmax(priority, dim=1)
+        row_indices = torch.arange(num_layers, device=device)
+        expert_count[row_indices, best_expert] += 1
+        current_counts[row_indices, best_expert] += 1.0
 
-    Logic Flow:
-    1. Deadline Safety Check (Critical)
-    2. Current Region Spot Available? -&gt; Use SPOT
-    3. Else: Search ALL regions for SPOT availability -&gt; Switch to first available
-    4. If no spot anywhere: use ON_DEMAND if behind schedule, else wait (NONE) if safe
-    """
+    # --- 2. Map Generation ---
+    # Logical IDs and their replica ranks (0, 1, 2...) for every physical slot
+    # sorted by load to allow balanced assignment
+    rep_load_per_expert = w_float / current_counts
+    
+    # Expand logical experts into a flat list of items per layer
+    # expert_offsets: [layers, 65]
+    expert_offsets = torch.zeros((num_layers, num_logical + 1), dtype=torch.int64, device=device)
+    expert_offsets[:, 1:] = torch.cumsum(expert_count, dim=1)
+    
+    # seq: [layers, 288] -&gt; maps flat index to logical expert id
+    seq = torch.arange(num_replicas, device=device).expand(num_layers, -1)
+    logical_ids = torch.searchsorted(expert_offsets, seq, right=True) - 1
+    logical_ids = torch.clamp(logical_ids, 0, num_logical - 1)
+    
+    # Calculate the instance rank (which replica it is for that expert)
+    # rank: [layers, 288]
+    ranks = seq - torch.gather(expert_offsets, 1, logical_ids)
+    
+    # Get load for each individual replica
+    replica_loads = torch.gather(rep_load_per_expert, 1, logical_ids)
+    
+    # Sort replicas by load descending
+    sort_idx = torch.argsort(replica_loads, dim=1, descending=True)
+    sorted_logical = torch.gather(logical_ids, 1, sort_idx)
+    sorted_ranks = torch.gather(ranks, 1, sort_idx)
 
-    env = ctx.env
-    now = env.elapsed_seconds
-    deadline = ctx.deadline
-    total_work = ctx.task_duration
-    done_work = sum(ctx.task_done_time)
-    remaining_work = total_work - done_work
-    time_left = deadline - now
+    # --- 3. Snake Mapping for Load Balancing ---
+    # We map sorted replicas to GPUs using a zig-zag pattern
+    # GPU 0..31, then 31..0, then 0..31...
+    gpu_indices = torch.arange(num_gpus, device=device)
+    placement_list = []
+    for s in range(slots_per_gpu):
+        if s % 2 == 0:
+            order = gpu_indices
+        else:
+            order = gpu_indices.flip(0)
+        # Physical index = gpu_id * 9 + slot_in_gpu
+        placement_list.append(order * slots_per_gpu + s)
+    
+    # placement_order: [288]
+    placement_order = torch.cat(placement_list)
+    
+    physical_to_logical_map = torch.zeros((num_layers, num_replicas), dtype=torch.int64, device=device)
+    physical_rank_map = torch.zeros((num_layers, num_replicas), dtype=torch.int64, device=device)
+    
+    # Scatter the sorted items into the physical slots defined by snake order
+    dest = placement_order.expand(num_layers, -1)
+    physical_to_logical_map.scatter_(1, dest, sorted_logical)
+    physical_rank_map.scatter_(1, dest, sorted_ranks)
 
-    # Task already finished
-    if remaining_work &lt;= 0:
-        return ClusterType.NONE
+    # --- 4. Inverse Map (Logical to Physical) ---
+    max_reps = int(expert_count.max().item())
+    logical_to_physical_map = torch.full((num_layers, num_logical, max_reps), -1, dtype=torch.int64, device=device)
+    
+    # Prepare indices for scatter
+    layer_idx = torch.arange(num_layers, device=device).unsqueeze(1).expand(-1, num_replicas)
+    phys_idx = torch.arange(num_replicas, device=device).expand(num_layers, -1)
+    
+    # Flattened index for 3D tensor: [layer, expert, rank]
+    flat_dest_indices = (
+        layer_idx * (num_logical * max_reps) +
+        physical_to_logical_map * max_reps +
+        physical_rank_map
+    ).reshape(-1)
+    
+    logical_to_physical_map.view(-1).scatter_(0, flat_dest_indices, phys_idx.reshape(-1))
 
-    # --- 1. DEADLINE SAFETY: Point of No Return (PNR) ---
-    required_time = remaining_work + ctx.restart_overhead
-    safety_threshold = required_time * 1.05
-
-    if time_left &lt;= safety_threshold:
-        return ClusterType.SPOT if has_spot else ClusterType.ON_DEMAND
-
-    # --- 2. Check Current Region Spot Availability ---
-    if has_spot:
-        return ClusterType.SPOT
-
-    # --- 3. Multi-Region Spot Arbitrage: Find Any Available Spot ---
-    all_spots = env.get_all_regions_spot_available()
-    num_regions = env.get_num_regions()
-    current_region = env.get_current_region()
-
-    for idx in range(num_regions):
-        if all_spots[idx]:
-            if env.switch_region(idx):
-                return ClusterType.SPOT
-
-    # --- 4. No Spot Available Anywhere ---
-    ideal_rate = total_work / deadline
-    expected_progress = ideal_rate * now
-    progress_deviation = done_work - expected_progress
-
-    if progress_deviation &lt; 0:
-        return ClusterType.ON_DEMAND
-
-    slack = time_left - remaining_work
-    min_slack = max(3600.0, deadline * 0.05)
-
-    if slack &gt; min_slack:
-        tick_index = int(now // env.gap_seconds)
-        if tick_index % 10 == 0:
-            next_region = (current_region + 1) % num_regions
-            env.switch_region(next_region)
-        return ClusterType.NONE
-
-    return ClusterType.ON_DEMAND
+    return physical_to_logical_map, logical_to_physical_map, expert_count
 </code></pre>
 </details>
 
