@@ -6,10 +6,13 @@ date: 2026-02-01
 permalink: /levi
 ---
 
-<details>
+<details markdown="1">
 <summary><strong>Example: LEVI-evolved EPLB strategy (74.6%)</strong></summary>
-<p>One of the programs LEVI discovered for EPLB (Expert Parallel Load Balancing) -- replicating and assigning MoE experts across GPUs to minimize imbalance. This strategy uses greedy apportionment to decide replica counts, then a snake-mapping placement to spread hot experts evenly across devices.</p>
-<pre><code class="language-python">import torch
+
+One of the programs LEVI discovered for EPLB (Expert Parallel Load Balancing) -- replicating and assigning MoE experts across GPUs to minimize imbalance. This strategy uses greedy apportionment to decide replica counts, then a snake-mapping placement to spread hot experts evenly across devices.
+
+```python
+import torch
 
 def rebalance_experts(
     weight: torch.Tensor,
@@ -17,7 +20,7 @@ def rebalance_experts(
     num_groups: int,
     num_nodes: int,
     num_gpus: int,
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     '''
     Rearrange and replicate logical experts across physical GPU slots.
     Optimized for load balance using Greedy Apportionment and Snake Mapping.
@@ -68,7 +71,7 @@ def rebalance_experts(
     expert_offsets = torch.zeros((num_layers, num_logical + 1), dtype=torch.int64, device=device)
     expert_offsets[:, 1:] = torch.cumsum(expert_count, dim=1)
     
-    # seq: [layers, 288] -&gt; maps flat index to logical expert id
+    # seq: [layers, 288] -> maps flat index to logical expert id
     seq = torch.arange(num_replicas, device=device).expand(num_layers, -1)
     logical_ids = torch.searchsorted(expert_offsets, seq, right=True) - 1
     logical_ids = torch.clamp(logical_ids, 0, num_logical - 1)
@@ -127,7 +130,7 @@ def rebalance_experts(
     logical_to_physical_map.view(-1).scatter_(0, flat_dest_indices, phys_idx.reshape(-1))
 
     return physical_to_logical_map, logical_to_physical_map, expert_count
-</code></pre>
+```
 </details>
 
 ## TLDR

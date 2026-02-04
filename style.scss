@@ -14,6 +14,23 @@
   --heading-color: #ffffff;
   --link-color: #e0e0e0;
   --link-hover: #ffffff;
+  --code-bg: #0d1117;
+  --code-border: #30363d;
+  --code-text: #c9d1d9;
+  --code-inline-bg: #161b22;
+  --code-inline-text: #c9d1d9;
+  --code-comment: #8b949e;
+  --code-keyword: #ff7b72;
+  --code-string: #a5d6ff;
+  --code-number: #79c0ff;
+  --code-function: #d2a8ff;
+  --code-type: #ffa657;
+  --code-constant: #79c0ff;
+  --code-attr: #ffa657;
+  --code-tag: #7ee787;
+  --code-error: #f85149;
+  --code-insert: #3fb950;
+  --code-delete: #f85149;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +46,23 @@
     --heading-color: #ffffff;
     --link-color: #e0e0e0;
     --link-hover: #ffffff;
+    --code-bg: #0d1117;
+    --code-border: #30363d;
+    --code-text: #c9d1d9;
+    --code-inline-bg: #161b22;
+    --code-inline-text: #c9d1d9;
+    --code-comment: #8b949e;
+    --code-keyword: #ff7b72;
+    --code-string: #a5d6ff;
+    --code-number: #79c0ff;
+    --code-function: #d2a8ff;
+    --code-type: #ffa657;
+    --code-constant: #79c0ff;
+    --code-attr: #ffa657;
+    --code-tag: #7ee787;
+    --code-error: #f85149;
+    --code-insert: #3fb950;
+    --code-delete: #f85149;
   }
 }
 
@@ -55,6 +89,23 @@
   --heading-color: #ffffff;
   --link-color: #e0e0e0;
   --link-hover: #ffffff;
+  --code-bg: #0d1117;
+  --code-border: #30363d;
+  --code-text: #c9d1d9;
+  --code-inline-bg: #161b22;
+  --code-inline-text: #c9d1d9;
+  --code-comment: #8b949e;
+  --code-keyword: #ff7b72;
+  --code-string: #a5d6ff;
+  --code-number: #79c0ff;
+  --code-function: #d2a8ff;
+  --code-type: #ffa657;
+  --code-constant: #79c0ff;
+  --code-attr: #ffa657;
+  --code-tag: #7ee787;
+  --code-error: #f85149;
+  --code-insert: #3fb950;
+  --code-delete: #f85149;
 }
 
 [data-theme="light"] {
@@ -69,6 +120,23 @@
   --heading-color: #111111;
   --link-color: #222222;
   --link-hover: #000000;
+  --code-bg: #f6f8fa;
+  --code-border: #d0d7de;
+  --code-text: #1f2328;
+  --code-inline-bg: #f6f8fa;
+  --code-inline-text: #1f2328;
+  --code-comment: #6a737d;
+  --code-keyword: #d73a49;
+  --code-string: #032f62;
+  --code-number: #005cc5;
+  --code-function: #6f42c1;
+  --code-type: #005cc5;
+  --code-constant: #005cc5;
+  --code-attr: #6f42c1;
+  --code-tag: #22863a;
+  --code-error: #b31d28;
+  --code-insert: #22863a;
+  --code-delete: #b31d28;
 }
 
 @media (prefers-color-scheme: light) {
@@ -84,6 +152,23 @@
     --heading-color: #111111;
     --link-color: #222222;
     --link-hover: #000000;
+    --code-bg: #f6f8fa;
+    --code-border: #d0d7de;
+    --code-text: #1f2328;
+    --code-inline-bg: #f6f8fa;
+    --code-inline-text: #1f2328;
+    --code-comment: #6a737d;
+    --code-keyword: #d73a49;
+    --code-string: #032f62;
+    --code-number: #005cc5;
+    --code-function: #6f42c1;
+    --code-type: #005cc5;
+    --code-constant: #005cc5;
+    --code-attr: #6f42c1;
+    --code-tag: #22863a;
+    --code-error: #b31d28;
+    --code-insert: #22863a;
+    --code-delete: #b31d28;
   }
 }
 
@@ -107,6 +192,91 @@ body {
   padding: 0;
   padding-top: 50px;
   line-height: 1.6;
+}
+
+/* Code styling */
+code, pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+:not(pre) > code {
+  background: var(--code-inline-bg);
+  color: var(--code-inline-text);
+  border: 1px solid var(--code-border);
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+}
+
+.highlight {
+  margin: 16px 0;
+}
+
+.highlight pre, pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border: 1px solid var(--code-border);
+  border-radius: 10px;
+  padding: 16px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+.highlight pre {
+  margin: 0;
+}
+
+pre code, .highlight code {
+  background: transparent;
+  padding: 0;
+}
+
+.highlight .c, .highlight .c1, .highlight .cm, .highlight .cp, .highlight .cs {
+  color: var(--code-comment);
+}
+
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kt {
+  color: var(--code-keyword);
+}
+
+.highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .sh, .highlight .si, .highlight .sx, .highlight .sr, .highlight .ss {
+  color: var(--code-string);
+}
+
+.highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo, .highlight .il {
+  color: var(--code-number);
+}
+
+.highlight .nf, .highlight .nc {
+  color: var(--code-function);
+}
+
+.highlight .nn, .highlight .na {
+  color: var(--code-attr);
+}
+
+.highlight .nt {
+  color: var(--code-tag);
+}
+
+.highlight .nb, .highlight .bp, .highlight .no {
+  color: var(--code-constant);
+}
+
+.highlight .o, .highlight .p {
+  color: var(--code-text);
+}
+
+.highlight .err {
+  color: var(--code-error);
+  background: rgba(248, 81, 73, 0.12);
+}
+
+.highlight .gi {
+  color: var(--code-insert);
+}
+
+.highlight .gd {
+  color: var(--code-delete);
 }
 
 /* Scroll offset for fixed nav */
