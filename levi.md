@@ -194,8 +194,10 @@ Two core improvements:
 
 DSPy optimizes mutation prompts once up front, then producer workers sample parents from the CVT-MAP-Elites archive via LiteLLM, push candidate code through an asyncio queue, and consumer workers evaluate each candidate in a sandboxed subprocess. The archive only accepts improvements per behavioral niche. Punctuated Equilibrium periodically triggers paradigm shifts, and a budget manager shuts everything down when the dollar/eval/time limit is hit.
 
-<img src="/images/levi_overview.png" alt="LEVI System Overview" class="img-light" style="width:90%; height:auto; display:block; margin:1.5rem auto;" />
-<img src="/images/levi_overview_dark.png" alt="LEVI System Overview" class="img-dark" style="width:90%; height:auto; display:block; margin:1.5rem auto;" />
+<div class="diagram">
+  <img src="/images/levi_overview.png" alt="LEVI System Overview" class="img-light" />
+  <img src="/images/levi_overview_dark.png" alt="LEVI System Overview" class="img-dark" />
+</div>
 
 *Figure 1: LEVI system overview. Producers generate mutations, consumers evaluate in sandboxed subprocesses, and the CVT-MAP-Elites archive maintains behavioral diversity.*
 

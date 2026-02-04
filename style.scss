@@ -452,6 +452,18 @@ span.highlight {
   padding: 2px 4px;
 }
 
+/* Diagram sizing */
+.diagram {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.diagram img {
+  width: 90%;
+  height: auto;
+}
+
 /* Mobile responsiveness */
 @media screen and (max-width: 768px) {
   body, td, th, tr, p, a, li {
