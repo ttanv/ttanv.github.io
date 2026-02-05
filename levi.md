@@ -147,16 +147,108 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 
 [ADRS](https://ucbskyadrs.github.io/) is a benchmark suite from UC Berkeley for evaluating LLM-guided optimization on real-world systems problems -- cloud scheduling, load balancing, congestion control, SQL optimization, and more.
 
-| Framework | Average | Cloudcast | EPLB | LLM-SQL | Prism | Spot Multi-Reg | Spot Single-Reg | Txn Scheduling |
-|---|---|---|---|---|---|---|---|---|
-| Human SOTA | 59.4 | 100.0 | 45.8 | 67.7 | 60.8 | 54.5 | 45.1 | 41.9 |
-| AutoEvolve | 74.1 | 97.8 | 70.2 | 76.4 | 87.4 | 70.0 | 46.3 | 70.6 |
-| GEPA | 71.9 | 96.6 | 70.2 | 67.7 | 87.4 | 62.2 | 51.4 | 67.7 |
-| OpenEvolve | 70.6 | 92.9 | 62.0 | 72.5 | 87.4 | 66.7 | 42.5 | 70.0 |
-| ShinkaEvolve | 67.4 | 72.0 | 66.4 | 68.5 | 87.4 | 63.6 | 45.6 | 68.2 |
-| **LEVI** | **76.5** | **100.0** | **74.6** | **78.3** | **87.4** | **72.4** | **51.7** | **71.1** |
-
-*Table 1: ADRS benchmark scores. LEVI achieves the highest average across all frameworks.*
+<div class="adrs-table-card">
+  <div class="adrs-table-wrap">
+    <table class="adrs-table">
+      <thead>
+        <tr>
+          <th class="adrs-sticky">Framework</th>
+          <th class="adrs-average">Average</th>
+          <th>Cloudcast</th>
+          <th>EPLB</th>
+          <th>LLM-SQL</th>
+          <th>Prism</th>
+          <th>Spot Multi-Reg</th>
+          <th>Spot Single-Reg</th>
+          <th>Txn Scheduling</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="adrs-sticky">
+            <div class="adrs-fw">
+              <span class="adrs-swatch swatch-human"></span>
+              <span class="adrs-fw-name">Human SOTA</span>
+            </div>
+          </td>
+          <td class="adrs-average"><span class="adrs-val">59.4</span></td>
+          <td><span class="adrs-val is-best">100.0</span></td>
+          <td><span class="adrs-val">45.8</span></td>
+          <td><span class="adrs-val">67.7</span></td>
+          <td><span class="adrs-val">60.8</span></td>
+          <td><span class="adrs-val">54.5</span></td>
+          <td><span class="adrs-val">45.1</span></td>
+          <td><span class="adrs-val">41.9</span></td>
+        </tr>
+        <tr>
+          <td class="adrs-sticky">
+            <div class="adrs-fw">
+              <span class="adrs-swatch swatch-gepa"></span>
+              <span class="adrs-fw-name">GEPA</span>
+            </div>
+          </td>
+          <td class="adrs-average"><span class="adrs-val">71.9</span></td>
+          <td><span class="adrs-val">96.6</span></td>
+          <td><span class="adrs-val">70.2</span></td>
+          <td><span class="adrs-val">67.7</span></td>
+          <td><span class="adrs-val is-best">87.4</span></td>
+          <td><span class="adrs-val">62.2</span></td>
+          <td><span class="adrs-val">51.4</span></td>
+          <td><span class="adrs-val">67.7</span></td>
+        </tr>
+        <tr>
+          <td class="adrs-sticky">
+            <div class="adrs-fw">
+              <span class="adrs-swatch swatch-openevolve"></span>
+              <span class="adrs-fw-name">OpenEvolve</span>
+            </div>
+          </td>
+          <td class="adrs-average"><span class="adrs-val">70.6</span></td>
+          <td><span class="adrs-val">92.9</span></td>
+          <td><span class="adrs-val">62.0</span></td>
+          <td><span class="adrs-val">72.5</span></td>
+          <td><span class="adrs-val is-best">87.4</span></td>
+          <td><span class="adrs-val">66.7</span></td>
+          <td><span class="adrs-val">42.5</span></td>
+          <td><span class="adrs-val">70.0</span></td>
+        </tr>
+        <tr>
+          <td class="adrs-sticky">
+            <div class="adrs-fw">
+              <span class="adrs-swatch swatch-shinka"></span>
+              <span class="adrs-fw-name">ShinkaEvolve</span>
+            </div>
+          </td>
+          <td class="adrs-average"><span class="adrs-val">67.4</span></td>
+          <td><span class="adrs-val">72.0</span></td>
+          <td><span class="adrs-val">66.4</span></td>
+          <td><span class="adrs-val">68.5</span></td>
+          <td><span class="adrs-val is-best">87.4</span></td>
+          <td><span class="adrs-val">63.6</span></td>
+          <td><span class="adrs-val">45.6</span></td>
+          <td><span class="adrs-val">68.2</span></td>
+        </tr>
+        <tr class="is-levi">
+          <td class="adrs-sticky">
+            <div class="adrs-fw">
+              <span class="adrs-swatch swatch-levi"></span>
+              <span class="adrs-fw-name">LEVI</span>
+            </div>
+          </td>
+          <td class="adrs-average"><span class="adrs-val is-best is-levi">76.5</span></td>
+          <td><span class="adrs-val is-best is-levi">100.0</span></td>
+          <td><span class="adrs-val is-best is-levi">74.6</span></td>
+          <td><span class="adrs-val is-best is-levi">78.3</span></td>
+          <td><span class="adrs-val is-best is-levi">87.4</span></td>
+          <td><span class="adrs-val is-best is-levi">72.4</span></td>
+          <td><span class="adrs-val is-best is-levi">51.7</span></td>
+          <td><span class="adrs-val is-best is-levi">71.1</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="adrs-note">Table 1: ADRS benchmark scores. LEVI achieves the highest average across all frameworks. Bold values indicate best performance per benchmark.</div>
 
 ### Cost per Problem
 
