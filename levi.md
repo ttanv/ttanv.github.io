@@ -514,17 +514,159 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 
 ### Cost per Problem
 
-| Problem | ADRS Baseline Cost | LEVI Cost | Reduction |
-|---|---|---|---|
-| Cloudcast | ≤$15 | $4.50 | 3.3x |
-| EPLB | <$15 | $4.50 | <3.3x |
-| LLM-SQL | ≤$20 | $4.50 | 4.4x |
-| Prism | ≤$15 | $4.50 | 3.3x |
-| Spot Multi-Reg | ≤$25 | $4.50 | 5.6x |
-| Spot Single-Reg | ≤$30 | $4.50 | 6.7x |
-| Txn Scheduling | ≤$20 | $13 | 1.5x |
+<div class="adrs-dashboard">
+  <div class="adrs-summary">
+    <div class="adrs-stat adrs-stat-highlight">
+      <div class="adrs-stat-label">LEVI Typical Cost</div>
+      <div class="adrs-stat-value">$4.50</div>
+    </div>
+    <div class="adrs-stat">
+      <div class="adrs-stat-label">Baseline Range</div>
+      <div class="adrs-stat-value">$15–$30</div>
+    </div>
+    <div class="adrs-stat adrs-stat-highlight">
+      <div class="adrs-stat-label">Cost Reduction</div>
+      <div class="adrs-stat-value">1.5–6.7x</div>
+    </div>
+  </div>
 
-*Table 2: Cost comparison. LEVI uses $4.50 on most tasks (Txn Scheduling is $13) versus the baselines' $15-$30, yielding 1.5-6.7x reductions.*
+  <div class="adrs-chart-container" style="height: 320px;">
+    <canvas id="cost-chart"></canvas>
+  </div>
+  <div class="adrs-note">LEVI uses $4.50 on most tasks (Txn Scheduling: $13) versus baselines' $15–$30.</div>
+</div>
+
+<script>
+(function() {
+  const PROBLEMS   = ["Spot Single-Reg", "Spot Multi-Reg", "LLM-SQL", "Txn Scheduling", "Cloudcast", "Prism", "EPLB"];
+  const BASELINE   = [30, 25, 20, 20, 15, 15, 15];
+  const LEVI_COST  = [4.5, 4.5, 4.5, 13, 4.5, 4.5, 4.5];
+  const REDUCTIONS = ["6.7x", "5.6x", "4.4x", "1.5x", "3.3x", "3.3x", "3.3x"];
+
+  let costChart = null;
+
+  function createCostChart() {
+    const ctx = document.getElementById('cost-chart');
+    if (!ctx) return;
+
+    const style = getComputedStyle(document.documentElement);
+    const textColor = style.getPropertyValue('--text-secondary').trim() || '#888';
+    const gridColor = style.getPropertyValue('--border-color').trim() || '#2a2a2a';
+    const leviColor = style.getPropertyValue('--adrs-levi').trim() || '#ef4444';
+    const headingColor = style.getPropertyValue('--heading-color').trim() || '#fff';
+
+    if (costChart) costChart.destroy();
+
+    costChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: PROBLEMS,
+        datasets: [
+          {
+            label: 'Baseline Cost',
+            data: BASELINE,
+            backgroundColor: 'rgba(100, 116, 139, 0.35)',
+            borderRadius: 3,
+            barPercentage: 0.7,
+            categoryPercentage: 0.75,
+          },
+          {
+            label: 'LEVI Cost',
+            data: LEVI_COST,
+            backgroundColor: leviColor,
+            borderRadius: 3,
+            barPercentage: 0.7,
+            categoryPercentage: 0.75,
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: {
+              color: textColor,
+              font: { size: 11 },
+              boxWidth: 12,
+              boxHeight: 4,
+              padding: 16,
+              usePointStyle: false,
+            }
+          },
+          tooltip: {
+            backgroundColor: style.getPropertyValue('--card-bg').trim() || '#1a1a1a',
+            titleColor: headingColor,
+            bodyColor: textColor,
+            borderColor: gridColor,
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              afterBody: function(context) {
+                const idx = context[0].dataIndex;
+                return 'Reduction: ' + REDUCTIONS[idx];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor, drawBorder: false },
+            ticks: {
+              color: textColor,
+              font: { size: 11, family: 'ui-monospace, monospace' },
+              callback: function(v) { return '$' + v; }
+            },
+            max: 35,
+          },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: textColor,
+              font: { size: 12 },
+            }
+          }
+        }
+      },
+      plugins: [{
+        id: 'reductionLabels',
+        afterDatasetsDraw: function(chart) {
+          const meta = chart.getDatasetMeta(1);
+          const ctx2 = chart.ctx;
+          meta.data.forEach(function(bar, i) {
+            ctx2.save();
+            ctx2.font = 'bold 11px ui-monospace, SFMono-Regular, monospace';
+            ctx2.fillStyle = leviColor;
+            ctx2.textAlign = 'left';
+            ctx2.textBaseline = 'middle';
+            ctx2.fillText(REDUCTIONS[i], bar.x + 6, bar.y);
+            ctx2.restore();
+          });
+        }
+      }]
+    });
+  }
+
+  // Theme observers
+  const obs = new MutationObserver(function() { setTimeout(createCostChart, 50); });
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+      setTimeout(createCostChart, 50);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createCostChart);
+  } else {
+    createCostChart();
+  }
+})();
+</script>
 
 ## The Problem with Existing Systems
 
