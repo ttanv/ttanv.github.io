@@ -168,35 +168,44 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
     </div>
   </div>
 
-  <!-- Legend -->
-  <div class="adrs-legend" id="adrs-legend">
-    <div class="adrs-legend-item" data-framework="GEPA">
-      <span class="adrs-swatch swatch-gepa"></span>
-      <span class="adrs-legend-name">GEPA</span>
+  <div class="adrs-controls">
+    <!-- Legend -->
+    <div class="adrs-legend" id="adrs-legend">
+      <div class="adrs-legend-item" data-framework="GEPA">
+        <span class="adrs-swatch swatch-gepa"></span>
+        <span class="adrs-legend-name">GEPA</span>
+      </div>
+      <div class="adrs-legend-item" data-framework="OpenEvolve">
+        <span class="adrs-swatch swatch-openevolve"></span>
+        <span class="adrs-legend-name">OpenEvolve</span>
+      </div>
+      <div class="adrs-legend-item" data-framework="ShinkaEvolve">
+        <span class="adrs-swatch swatch-shinka"></span>
+        <span class="adrs-legend-name">ShinkaEvolve</span>
+      </div>
+      <div class="adrs-legend-item" data-framework="LEVI">
+        <span class="adrs-swatch swatch-levi"></span>
+        <span class="adrs-legend-name adrs-legend-levi">LEVI</span>
+      </div>
     </div>
-    <div class="adrs-legend-item" data-framework="OpenEvolve">
-      <span class="adrs-swatch swatch-openevolve"></span>
-      <span class="adrs-legend-name">OpenEvolve</span>
-    </div>
-    <div class="adrs-legend-item" data-framework="ShinkaEvolve">
-      <span class="adrs-swatch swatch-shinka"></span>
-      <span class="adrs-legend-name">ShinkaEvolve</span>
-    </div>
-    <div class="adrs-legend-item" data-framework="LEVI">
-      <span class="adrs-swatch swatch-levi"></span>
-      <span class="adrs-legend-name adrs-legend-levi">LEVI</span>
+    <div class="adrs-view-toggle" id="adrs-view-toggle" role="tablist" aria-label="ADRS view toggle">
+      <button type="button" class="adrs-toggle-btn is-active" data-view="chart" role="tab" aria-selected="true" aria-controls="adrs-chart-view">Diagram</button>
+      <button type="button" class="adrs-toggle-btn" data-view="table" role="tab" aria-selected="false" aria-controls="adrs-table-view">Table</button>
     </div>
   </div>
 
   <!-- Chart -->
-  <div class="adrs-chart-container">
-    <canvas id="adrs-chart"></canvas>
+  <div class="adrs-view" id="adrs-chart-view" data-adrs-view="chart">
+    <div class="adrs-chart-container">
+      <canvas id="adrs-chart"></canvas>
+    </div>
   </div>
 
   <!-- Table -->
-  <div class="adrs-table-card">
-    <div class="adrs-table-wrap">
-      <table class="adrs-table" id="adrs-table">
+  <div class="adrs-view" id="adrs-table-view" data-adrs-view="table" hidden>
+    <div class="adrs-table-card">
+      <div class="adrs-table-wrap">
+        <table class="adrs-table" id="adrs-table">
         <thead>
           <tr>
             <th class="adrs-sticky">Framework</th>
@@ -276,10 +285,11 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
             <td><span class="adrs-val is-best is-levi">71.1</span></td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
+    <div class="adrs-note">Bold values indicate best performance per benchmark.</div>
   </div>
-  <div class="adrs-note">Bold values indicate best performance per benchmark.</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -315,6 +325,7 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 
   let chart = null;
   let hoveredFramework = null;
+  let currentView = 'chart';
 
   function createChart() {
     const ctx = document.getElementById('adrs-chart');
@@ -450,6 +461,25 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
     });
   }
 
+  function setView(view) {
+    currentView = view;
+    const chartView = document.getElementById('adrs-chart-view');
+    const tableView = document.getElementById('adrs-table-view');
+    const toggle = document.getElementById('adrs-view-toggle');
+    if (chartView) chartView.hidden = view !== 'chart';
+    if (tableView) tableView.hidden = view !== 'table';
+    if (toggle) {
+      toggle.querySelectorAll('.adrs-toggle-btn').forEach(btn => {
+        const isActive = btn.dataset.view === view;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+    }
+    if (view === 'chart' && chart) {
+      setTimeout(() => chart.resize(), 0);
+    }
+  }
+
   function initInteractivity() {
     // Legend hover
     document.querySelectorAll('.adrs-legend-item').forEach(item => {
@@ -462,6 +492,16 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
       row.addEventListener('mouseenter', () => handleHover(row.dataset.framework));
       row.addEventListener('mouseleave', () => handleHover(null));
     });
+
+    const toggle = document.getElementById('adrs-view-toggle');
+    if (toggle) {
+      toggle.querySelectorAll('.adrs-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const view = btn.dataset.view;
+          if (view && view !== currentView) setView(view);
+        });
+      });
+    }
   }
 
   // Theme change observer
@@ -482,10 +522,12 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
     document.addEventListener('DOMContentLoaded', () => {
       createChart();
       initInteractivity();
+      setView(currentView);
     });
   } else {
     createChart();
     initInteractivity();
+    setView(currentView);
   }
 })();
 </script>

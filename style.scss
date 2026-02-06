@@ -657,6 +657,54 @@ span.highlight {
   margin: 1.5rem 0;
 }
 
+.adrs-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.adrs-view[hidden] {
+  display: none;
+}
+
+.adrs-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.adrs-toggle-btn {
+  appearance: none;
+  border: 0;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.adrs-toggle-btn + .adrs-toggle-btn {
+  border-left: 1px solid var(--border-color);
+}
+
+.adrs-toggle-btn:hover {
+  color: var(--heading-color);
+}
+
+.adrs-toggle-btn.is-active {
+  background: var(--adrs-levi-bg);
+  color: var(--adrs-levi-border);
+}
+
 /* Summary Stats Row */
 .adrs-summary {
   display: flex;
@@ -704,6 +752,10 @@ span.highlight {
   flex-wrap: wrap;
   gap: 4px 16px;
   margin-bottom: 16px;
+}
+
+.adrs-controls .adrs-legend {
+  margin-bottom: 0;
 }
 
 .adrs-legend-item {
@@ -763,6 +815,11 @@ span.highlight {
   .adrs-stat {
     flex: 1 1 45%;
     min-width: 45%;
+  }
+
+  .adrs-controls {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .adrs-chart-container {
