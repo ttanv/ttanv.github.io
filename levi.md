@@ -148,26 +148,6 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 [ADRS](https://ucbskyadrs.github.io/) is a benchmark suite from UC Berkeley for evaluating LLM-guided optimization on real-world systems problems -- cloud scheduling, load balancing, congestion control, SQL optimization, and more.
 
 <div class="adrs-dashboard">
-  <!-- Summary Stats Row -->
-  <div class="adrs-summary">
-    <div class="adrs-stat adrs-stat-highlight">
-      <div class="adrs-stat-label">LEVI Average</div>
-      <div class="adrs-stat-value">76.5</div>
-    </div>
-    <div class="adrs-stat">
-      <div class="adrs-stat-label">2nd Best (GEPA)</div>
-      <div class="adrs-stat-value">71.9</div>
-    </div>
-    <div class="adrs-stat adrs-stat-highlight">
-      <div class="adrs-stat-label">LEVI Lead</div>
-      <div class="adrs-stat-value">+4.6</div>
-    </div>
-    <div class="adrs-stat adrs-stat-highlight">
-      <div class="adrs-stat-label">Best on Benchmarks</div>
-      <div class="adrs-stat-value">8 / 8</div>
-    </div>
-  </div>
-
   <div class="adrs-controls">
     <!-- Legend -->
     <div class="adrs-legend" id="adrs-legend">
@@ -537,21 +517,6 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 Because LEVI's diversity mechanism prevents early stagnation, we don't need expensive models to compensate. Most mutations use small models (Qwen-30B) at fractions of a cent each, and the system runs for more generations instead. The result: **1.5-6.7x cheaper** per problem while matching or beating systems that rely on Gemini 3.0 Pro and GPT 5.2.
 
 <div class="adrs-dashboard">
-  <div class="adrs-summary">
-    <div class="adrs-stat adrs-stat-highlight">
-      <div class="adrs-stat-label">LEVI Typical Cost</div>
-      <div class="adrs-stat-value">$4.50</div>
-    </div>
-    <div class="adrs-stat">
-      <div class="adrs-stat-label">Baseline Range</div>
-      <div class="adrs-stat-value">$15–$30</div>
-    </div>
-    <div class="adrs-stat adrs-stat-highlight">
-      <div class="adrs-stat-label">Cost Reduction</div>
-      <div class="adrs-stat-value">1.5–6.7x</div>
-    </div>
-  </div>
-
   <div class="adrs-chart-container" style="height: 320px;">
     <canvas id="cost-chart"></canvas>
   </div>
@@ -784,23 +749,23 @@ DSPy optimizes mutation prompts once up front, then producer workers sample pare
       <g transform="translate(575, 66)">
         <rect width="250" height="200" rx="5" fill="var(--levi-arch-voronoi-bg)" stroke="var(--levi-arch-subnode-stroke)" stroke-width="0.7"/>
 
-        <polygon points="0,0 65,0 55,50 40,70 0,60" fill="rgba(60,100,190,0.55)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="65,0 130,0 140,40 110,75 55,50" fill="rgba(50,150,80,0.55)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="130,0 195,0 200,55 160,70 140,40" fill="rgba(50,150,80,0.5)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="195,0 250,0 250,60 220,75 200,55" fill="rgba(190,60,60,0.55)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="0,0 65,0 55,50 40,70 0,60" fill="var(--levi-arch-fw-openevolve-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="65,0 130,0 140,40 110,75 55,50" fill="var(--levi-arch-fw-gepa-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="130,0 195,0 200,55 160,70 140,40" fill="var(--levi-arch-fw-gepa-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="195,0 250,0 250,60 220,75 200,55" fill="var(--levi-arch-fw-levi-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="0,60 40,70 50,120 30,140 0,130" fill="rgba(60,100,190,0.5)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="40,70 55,50 110,75 120,110 50,120" fill="rgba(170,145,25,0.55)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="110,75 140,40 160,70 170,120 120,110" fill="rgba(60,100,190,0.45)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="160,70 200,55 220,75 250,60 250,130 210,125 170,120" fill="rgba(190,60,60,0.5)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="0,60 40,70 50,120 30,140 0,130" fill="var(--levi-arch-fw-openevolve-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="40,70 55,50 110,75 120,110 50,120" fill="var(--levi-arch-fw-shinka-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="110,75 140,40 160,70 170,120 120,110" fill="var(--levi-arch-fw-openevolve-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="160,70 200,55 220,75 250,60 250,130 210,125 170,120" fill="var(--levi-arch-fw-levi-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="0,130 30,140 50,120 60,160 40,200 0,200" fill="rgba(50,150,80,0.5)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="50,120 120,110 130,160 60,160" fill="rgba(50,150,80,0.45)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="120,110 170,120 180,165 130,160" fill="rgba(170,145,25,0.5)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="170,120 210,125 250,130 250,200 200,200 180,165" fill="rgba(50,150,80,0.5)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="0,130 30,140 50,120 60,160 40,200 0,200" fill="var(--levi-arch-fw-gepa-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="50,120 120,110 130,160 60,160" fill="var(--levi-arch-fw-gepa-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="120,110 170,120 180,165 130,160" fill="var(--levi-arch-fw-shinka-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="170,120 210,125 250,130 250,200 200,200 180,165" fill="var(--levi-arch-fw-gepa-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="60,160 130,160 120,200 40,200" fill="rgba(60,100,190,0.5)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="130,160 180,165 200,200 120,200" fill="rgba(190,60,60,0.45)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="60,160 130,160 120,200 40,200" fill="var(--levi-arch-fw-openevolve-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="130,160 180,165 200,200 120,200" fill="var(--levi-arch-fw-levi-fill)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
         <use href="#levi-arch-star" x="18" y="16" width="18" height="18"/>
         <use href="#levi-arch-star" x="77" y="18" width="18" height="18"/>

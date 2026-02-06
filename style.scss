@@ -538,9 +538,13 @@ span.highlight {
   --levi-arch-text-cell-muted: rgba(255, 255, 255, 0.4);
   --levi-arch-edge: rgba(255, 255, 255, 0.2);
   --levi-arch-arrow-head: rgba(255, 255, 255, 0.25);
-  --levi-arch-star-color: rgba(255, 255, 255, 0.82);
+  --levi-arch-star-color: #f59e0b;
   --levi-arch-voronoi-bg: #181820;
   --levi-arch-hover-fill: rgba(255, 255, 255, 0.04);
+  --levi-arch-fw-gepa-fill: rgba(16, 185, 129, 0.62);
+  --levi-arch-fw-openevolve-fill: rgba(99, 102, 241, 0.62);
+  --levi-arch-fw-shinka-fill: rgba(245, 158, 11, 0.62);
+  --levi-arch-fw-levi-fill: rgba(239, 68, 68, 0.62);
 }
 
 [data-theme="light"] .levi-arch-diagram {
@@ -555,7 +559,6 @@ span.highlight {
   --levi-arch-text-cell-muted: rgba(17, 24, 39, 0.5);
   --levi-arch-edge: rgba(17, 24, 39, 0.3);
   --levi-arch-arrow-head: rgba(17, 24, 39, 0.45);
-  --levi-arch-star-color: rgba(17, 24, 39, 0.78);
   --levi-arch-voronoi-bg: #e9edf3;
   --levi-arch-hover-fill: rgba(0, 0, 0, 0.04);
 }
@@ -631,7 +634,6 @@ span.highlight {
     --levi-arch-text-cell-muted: rgba(17, 24, 39, 0.5);
     --levi-arch-edge: rgba(17, 24, 39, 0.3);
     --levi-arch-arrow-head: rgba(17, 24, 39, 0.45);
-    --levi-arch-star-color: rgba(17, 24, 39, 0.78);
     --levi-arch-voronoi-bg: #e9edf3;
     --levi-arch-hover-fill: rgba(0, 0, 0, 0.04);
   }
