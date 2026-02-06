@@ -652,6 +652,124 @@ span.highlight {
   font-style: italic;
 }
 
+/* ADRS Dashboard */
+.adrs-dashboard {
+  margin: 1.5rem 0;
+}
+
+/* Summary Stats Row */
+.adrs-summary {
+  display: flex;
+  gap: 1px;
+  background: var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.adrs-stat {
+  flex: 1;
+  background: var(--card-bg);
+  padding: 14px 18px;
+  text-align: center;
+}
+
+.adrs-stat-highlight {
+  background: var(--adrs-levi-bg);
+}
+
+.adrs-stat-label {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.adrs-stat-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--heading-color);
+}
+
+.adrs-stat-highlight .adrs-stat-value {
+  color: var(--adrs-levi);
+}
+
+/* Legend */
+.adrs-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 16px;
+}
+
+.adrs-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.adrs-legend-item:hover {
+  background: var(--adrs-row-hover);
+}
+
+.adrs-legend-item.dimmed {
+  opacity: 0.3;
+}
+
+.adrs-legend-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.15s;
+}
+
+.adrs-legend-levi {
+  font-weight: 700;
+  color: var(--adrs-levi);
+}
+
+/* Chart Container */
+.adrs-chart-container {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px 16px 12px 8px;
+  margin-bottom: 20px;
+  height: 380px;
+}
+
+/* Table dimmed state */
+.blog-content .adrs-table tbody tr.dimmed {
+  opacity: 0.3;
+}
+
+.blog-content .adrs-table tbody tr {
+  transition: opacity 0.15s, background 0.12s;
+}
+
+@media screen and (max-width: 600px) {
+  .adrs-summary {
+    flex-wrap: wrap;
+  }
+
+  .adrs-stat {
+    flex: 1 1 45%;
+    min-width: 45%;
+  }
+
+  .adrs-chart-container {
+    height: 320px;
+  }
+}
+
 /* Mobile responsiveness */
 @media screen and (max-width: 768px) {
   body, td, th, tr, p, a, li {
