@@ -170,10 +170,6 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 
   <!-- Legend -->
   <div class="adrs-legend" id="adrs-legend">
-    <div class="adrs-legend-item" data-framework="Human SOTA">
-      <span class="adrs-swatch swatch-human"></span>
-      <span class="adrs-legend-name">Human SOTA</span>
-    </div>
     <div class="adrs-legend-item" data-framework="GEPA">
       <span class="adrs-swatch swatch-gepa"></span>
       <span class="adrs-legend-name">GEPA</span>
@@ -215,22 +211,6 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
           </tr>
         </thead>
         <tbody>
-          <tr data-framework="Human SOTA">
-            <td class="adrs-sticky">
-              <div class="adrs-fw">
-                <span class="adrs-swatch swatch-human"></span>
-                <span class="adrs-fw-name">Human SOTA</span>
-              </div>
-            </td>
-            <td class="adrs-average"><span class="adrs-val">59.4</span></td>
-            <td><span class="adrs-val is-best">100.0</span></td>
-            <td><span class="adrs-val">45.8</span></td>
-            <td><span class="adrs-val">67.7</span></td>
-            <td><span class="adrs-val">60.8</span></td>
-            <td><span class="adrs-val">54.5</span></td>
-            <td><span class="adrs-val">45.1</span></td>
-            <td><span class="adrs-val">41.9</span></td>
-          </tr>
           <tr data-framework="GEPA">
             <td class="adrs-sticky">
               <div class="adrs-fw">
@@ -305,10 +285,9 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function() {
-  const FRAMEWORKS = ["Human SOTA", "GEPA", "OpenEvolve", "ShinkaEvolve", "LEVI"];
+  const FRAMEWORKS = ["GEPA", "OpenEvolve", "ShinkaEvolve", "LEVI"];
   const BENCHMARKS = ["Average", "Cloudcast", "EPLB", "LLM-SQL", "Prism", "Spot Multi-Reg", "Spot Single-Reg", "Txn Scheduling"];
   const DATA = {
-    "Human SOTA":   [59.4, 100.0, 45.8, 67.7, 60.8, 54.5, 45.1, 41.9],
     "GEPA":         [71.9, 96.6, 70.2, 67.7, 87.4, 62.2, 51.4, 67.7],
     "OpenEvolve":   [70.6, 92.9, 62.0, 72.5, 87.4, 66.7, 42.5, 70.0],
     "ShinkaEvolve": [67.4, 72.0, 66.4, 68.5, 87.4, 63.6, 45.6, 68.2],
@@ -318,7 +297,6 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
   function getColors() {
     const style = getComputedStyle(document.documentElement);
     return {
-      "Human SOTA": style.getPropertyValue('--adrs-human').trim() || '#9ca3af',
       "GEPA": style.getPropertyValue('--adrs-gepa').trim() || '#7a9e8a',
       "OpenEvolve": style.getPropertyValue('--adrs-openevolve').trim() || '#8b96b3',
       "ShinkaEvolve": style.getPropertyValue('--adrs-shinka').trim() || '#b0a07a',
@@ -400,7 +378,7 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
             }
           },
           y: {
-            min: 35,
+            min: 40,
             max: 105,
             grid: {
               color: gridColor,
