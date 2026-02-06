@@ -514,6 +514,8 @@ Result: ***better*** scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benc
 
 ### Cost per Problem
 
+Because LEVI's diversity mechanism prevents early stagnation, we don't need expensive models to compensate. Most mutations use small models (Qwen-30B) at fractions of a cent each, and the system runs for more generations instead. The result: **1.5-6.7x cheaper** per problem while matching or beating systems that rely on Gemini 3.0 Pro and GPT 5.2.
+
 <div class="adrs-dashboard">
   <div class="adrs-summary">
     <div class="adrs-stat adrs-stat-highlight">
