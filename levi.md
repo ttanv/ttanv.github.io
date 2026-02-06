@@ -690,7 +690,7 @@ DSPy optimizes mutation prompts once up front, then producer workers sample pare
           <polygon points="0 0.8, 7 3, 0 5.2" fill="var(--levi-arch-arrow-head)"/>
         </marker>
         <symbol id="levi-arch-star" viewBox="0 0 20 20">
-          <polygon points="10,2 12.4,7.5 18,8 13.8,12 15,18 10,15 5,18 6.2,12 2,8 7.6,7.5" fill="#f59e0b"/>
+          <polygon points="10,2 12.4,7.5 18,8 13.8,12 15,18 10,15 5,18 6.2,12 2,8 7.6,7.5" fill="#ffffff"/>
         </symbol>
       </defs>
 
@@ -749,23 +749,23 @@ DSPy optimizes mutation prompts once up front, then producer workers sample pare
       <g transform="translate(575, 66)">
         <rect width="250" height="200" rx="5" fill="var(--levi-arch-voronoi-bg)" stroke="var(--levi-arch-subnode-stroke)" stroke-width="0.7"/>
 
-        <polygon points="0,0 65,0 55,50 40,70 0,60" fill="rgba(99,102,241,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="65,0 130,0 140,40 110,75 55,50" fill="rgba(16,185,129,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="130,0 195,0 200,55 160,70 140,40" fill="rgba(16,185,129,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="195,0 250,0 250,60 220,75 200,55" fill="rgba(239,68,68,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="0,0 65,0 55,50 40,70 0,60" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="65,0 130,0 140,40 110,75 55,50" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="130,0 195,0 200,55 160,70 140,40" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="195,0 250,0 250,60 220,75 200,55" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="0,60 40,70 50,120 30,140 0,130" fill="rgba(99,102,241,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="40,70 55,50 110,75 120,110 50,120" fill="rgba(245,158,11,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="110,75 140,40 160,70 170,120 120,110" fill="rgba(99,102,241,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="160,70 200,55 220,75 250,60 250,130 210,125 170,120" fill="rgba(239,68,68,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="0,60 40,70 50,120 30,140 0,130" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="40,70 55,50 110,75 120,110 50,120" fill="#f59e0b" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="110,75 140,40 160,70 170,120 120,110" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="160,70 200,55 220,75 250,60 250,130 210,125 170,120" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="0,130 30,140 50,120 60,160 40,200 0,200" fill="rgba(16,185,129,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="50,120 120,110 130,160 60,160" fill="rgba(16,185,129,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="120,110 170,120 180,165 130,160" fill="rgba(245,158,11,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="170,120 210,125 250,130 250,200 200,200 180,165" fill="rgba(16,185,129,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="0,130 30,140 50,120 60,160 40,200 0,200" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="50,120 120,110 130,160 60,160" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="120,110 170,120 180,165 130,160" fill="#f59e0b" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="170,120 210,125 250,130 250,200 200,200 180,165" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="60,160 130,160 120,200 40,200" fill="rgba(99,102,241,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="130,160 180,165 200,200 120,200" fill="rgba(239,68,68,0.62)" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="60,160 130,160 120,200 40,200" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="130,160 180,165 200,200 120,200" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
         <use href="#levi-arch-star" x="18" y="16" width="18" height="18"/>
         <use href="#levi-arch-star" x="77" y="18" width="18" height="18"/>
