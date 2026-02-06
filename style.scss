@@ -527,6 +527,37 @@ span.highlight {
   border-radius: 12px;
   background: var(--card-bg);
   overflow: hidden;
+  --levi-arch-node-fill: rgba(255, 255, 255, 0.04);
+  --levi-arch-node-stroke: rgba(255, 255, 255, 0.1);
+  --levi-arch-subnode-fill: rgba(255, 255, 255, 0.03);
+  --levi-arch-subnode-stroke: rgba(255, 255, 255, 0.06);
+  --levi-arch-text-primary: rgba(255, 255, 255, 0.85);
+  --levi-arch-text-secondary: rgba(255, 255, 255, 0.35);
+  --levi-arch-text-tertiary: rgba(255, 255, 255, 0.22);
+  --levi-arch-text-cell: rgba(255, 255, 255, 0.5);
+  --levi-arch-text-cell-muted: rgba(255, 255, 255, 0.4);
+  --levi-arch-edge: rgba(255, 255, 255, 0.2);
+  --levi-arch-arrow-head: rgba(255, 255, 255, 0.25);
+  --levi-arch-star-color: rgba(255, 255, 255, 0.82);
+  --levi-arch-voronoi-bg: #181820;
+  --levi-arch-hover-fill: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] .levi-arch-diagram {
+  --levi-arch-node-fill: rgba(17, 24, 39, 0.05);
+  --levi-arch-node-stroke: rgba(17, 24, 39, 0.2);
+  --levi-arch-subnode-fill: rgba(17, 24, 39, 0.04);
+  --levi-arch-subnode-stroke: rgba(17, 24, 39, 0.14);
+  --levi-arch-text-primary: rgba(17, 24, 39, 0.9);
+  --levi-arch-text-secondary: rgba(17, 24, 39, 0.65);
+  --levi-arch-text-tertiary: rgba(17, 24, 39, 0.56);
+  --levi-arch-text-cell: rgba(17, 24, 39, 0.62);
+  --levi-arch-text-cell-muted: rgba(17, 24, 39, 0.5);
+  --levi-arch-edge: rgba(17, 24, 39, 0.3);
+  --levi-arch-arrow-head: rgba(17, 24, 39, 0.45);
+  --levi-arch-star-color: rgba(17, 24, 39, 0.78);
+  --levi-arch-voronoi-bg: #e9edf3;
+  --levi-arch-hover-fill: rgba(0, 0, 0, 0.04);
 }
 
 .levi-arch-diagram svg {
@@ -545,7 +576,7 @@ span.highlight {
 }
 
 .levi-arch-hover-zone:hover {
-  fill: rgba(255, 255, 255, 0.04);
+  fill: var(--levi-arch-hover-fill);
 }
 
 .levi-arch-tooltip {
@@ -583,17 +614,26 @@ span.highlight {
   line-height: 1.65;
 }
 
-[data-theme="light"] .levi-arch-hover-zone:hover {
-  fill: rgba(0, 0, 0, 0.04);
-}
-
 [data-theme="light"] .levi-arch-tooltip {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .levi-arch-hover-zone:hover {
-    fill: rgba(0, 0, 0, 0.04);
+  :root:not([data-theme="dark"]) .levi-arch-diagram {
+    --levi-arch-node-fill: rgba(17, 24, 39, 0.05);
+    --levi-arch-node-stroke: rgba(17, 24, 39, 0.2);
+    --levi-arch-subnode-fill: rgba(17, 24, 39, 0.04);
+    --levi-arch-subnode-stroke: rgba(17, 24, 39, 0.14);
+    --levi-arch-text-primary: rgba(17, 24, 39, 0.9);
+    --levi-arch-text-secondary: rgba(17, 24, 39, 0.65);
+    --levi-arch-text-tertiary: rgba(17, 24, 39, 0.56);
+    --levi-arch-text-cell: rgba(17, 24, 39, 0.62);
+    --levi-arch-text-cell-muted: rgba(17, 24, 39, 0.5);
+    --levi-arch-edge: rgba(17, 24, 39, 0.3);
+    --levi-arch-arrow-head: rgba(17, 24, 39, 0.45);
+    --levi-arch-star-color: rgba(17, 24, 39, 0.78);
+    --levi-arch-voronoi-bg: #e9edf3;
+    --levi-arch-hover-fill: rgba(0, 0, 0, 0.04);
   }
 
   :root:not([data-theme="dark"]) .levi-arch-tooltip {
