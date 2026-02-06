@@ -519,6 +519,88 @@ span.highlight {
   height: auto;
 }
 
+.levi-arch-diagram {
+  position: relative;
+  width: min(100%, 920px);
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.levi-arch-diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 880px;
+  margin: 0 auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.levi-arch-hover-zone {
+  fill: transparent;
+  cursor: pointer;
+  transition: fill 0.2s ease;
+}
+
+.levi-arch-hover-zone:hover {
+  fill: rgba(255, 255, 255, 0.04);
+}
+
+.levi-arch-tooltip {
+  position: fixed;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px 18px;
+  max-width: 420px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1100;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.levi-arch-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.levi-arch-tooltip .tt-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--heading-color);
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+}
+
+.levi-arch-tooltip .tt-body {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+[data-theme="light"] .levi-arch-hover-zone:hover {
+  fill: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .levi-arch-tooltip {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .levi-arch-hover-zone:hover {
+    fill: rgba(0, 0, 0, 0.04);
+  }
+
+  :root:not([data-theme="dark"]) .levi-arch-tooltip {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  }
+}
+
 /* ADRS benchmark table */
 .adrs-table-card {
   background: var(--adrs-table-bg);

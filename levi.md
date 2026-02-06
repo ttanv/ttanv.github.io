@@ -713,9 +713,206 @@ Two core improvements:
 DSPy optimizes mutation prompts once up front, then producer workers sample parents from the CVT-MAP-Elites archive via LiteLLM, push candidate code through an asyncio queue, and consumer workers evaluate each candidate in a sandboxed subprocess. The archive only accepts improvements per behavioral niche. Punctuated Equilibrium periodically triggers paradigm shifts, and a budget manager shuts everything down when the dollar/eval/time limit is hit.
 
 <div class="diagram">
-  <img src="/images/levi_overview.png" alt="LEVI System Overview" class="img-light" />
-  <img src="/images/levi_overview_dark.png" alt="LEVI System Overview" class="img-dark" />
+  <div class="levi-arch-diagram" id="levi-arch-diagram">
+    <div class="levi-arch-tooltip" id="levi-arch-tooltip">
+      <div class="tt-title"></div>
+      <div class="tt-body"></div>
+    </div>
+
+    <svg width="880" height="520" viewBox="0 0 880 520" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="LEVI System Overview Architecture Diagram" role="img">
+      <defs>
+        <marker id="levi-arch-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0.8, 7 3, 0 5.2" fill="rgba(255,255,255,0.25)"/>
+        </marker>
+        <symbol id="levi-arch-star" viewBox="0 0 20 20">
+          <polygon points="10,2 12.4,7.5 18,8 13.8,12 15,18 10,15 5,18 6.2,12 2,8 7.6,7.5" fill="rgba(255,255,255,0.82)"/>
+        </symbol>
+      </defs>
+
+      <rect x="60" y="20" width="320" height="52" rx="7" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="220" y="42" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="13" font-weight="600">DSPy Prompt Optimization</text>
+      <text x="220" y="58" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">(One-time)</text>
+      <rect class="levi-arch-hover-zone" data-tip="dspy" x="60" y="20" width="320" height="52" rx="7"/>
+
+      <line x1="220" y1="72" x2="220" y2="98" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+
+      <rect x="60" y="100" width="320" height="52" rx="7" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="220" y="122" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="13" font-weight="600">N Producer Workers</text>
+      <text x="220" y="138" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">(LLMs: LiteLLM)</text>
+      <rect class="levi-arch-hover-zone" data-tip="producers" x="60" y="100" width="320" height="52" rx="7"/>
+
+      <line x1="220" y1="152" x2="220" y2="196" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="232" y="178" fill="rgba(255,255,255,0.22)" font-size="10" font-weight="300">Push Code</text>
+
+      <rect x="60" y="198" width="320" height="52" rx="7" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="220" y="220" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="13" font-weight="600">Code Queue</text>
+      <text x="220" y="236" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">(Asyncio)</text>
+      <rect class="levi-arch-hover-zone" data-tip="queue" x="60" y="198" width="320" height="52" rx="7"/>
+
+      <line x1="220" y1="250" x2="220" y2="294" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="232" y="276" fill="rgba(255,255,255,0.22)" font-size="10" font-weight="300">Pull Code</text>
+
+      <rect x="60" y="296" width="320" height="72" rx="7" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="220" y="318" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="13" font-weight="600">M Consumer Workers</text>
+      <text x="220" y="334" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">(Evaluation in Subprocess)</text>
+      <rect x="120" y="344" width="200" height="18" rx="3" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.7"/>
+      <text x="220" y="357" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="9" font-weight="300">exec + score_fn, Hard Timeout</text>
+      <rect class="levi-arch-hover-zone" data-tip="consumers" x="60" y="296" width="320" height="72" rx="7"/>
+
+      <line x1="220" y1="368" x2="220" y2="418" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+
+      <rect x="80" y="420" width="280" height="52" rx="7" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="220" y="442" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="13" font-weight="600">Budget Manager</text>
+      <text x="220" y="458" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">(Monitors $, #evals, time)</text>
+      <rect class="levi-arch-hover-zone" data-tip="budget" x="80" y="420" width="280" height="52" rx="7"/>
+
+      <line x1="380" y1="126" x2="548" y2="126" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="420" y="118" fill="rgba(255,255,255,0.22)" font-size="10" font-weight="300">Sample Parents</text>
+
+      <polyline points="380,320 500,320 500,250 548,250" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)" fill="none"/>
+      <text x="488" y="278" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="10" font-weight="300">Update if</text>
+      <text x="488" y="291" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="10" font-weight="300">Score &gt; Existing</text>
+
+      <line x1="360" y1="446" x2="548" y2="446" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="382" y="438" fill="rgba(255,255,255,0.22)" font-size="10" font-weight="300">STOP signal on exhaustion</text>
+
+      <line x1="690" y1="420" x2="690" y2="345" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+
+      <rect x="550" y="30" width="300" height="312" rx="9" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="700" y="56" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="13" font-weight="600">CVT-MAP-Elites Archive</text>
+
+      <g transform="translate(575, 66)">
+        <rect width="250" height="200" rx="5" fill="#181820" stroke="rgba(255,255,255,0.06)" stroke-width="0.7"/>
+
+        <polygon points="0,0 65,0 55,50 40,70 0,60" fill="rgba(60,100,190,0.55)" stroke="#181820" stroke-width="2"/>
+        <polygon points="65,0 130,0 140,40 110,75 55,50" fill="rgba(50,150,80,0.55)" stroke="#181820" stroke-width="2"/>
+        <polygon points="130,0 195,0 200,55 160,70 140,40" fill="rgba(50,150,80,0.5)" stroke="#181820" stroke-width="2"/>
+        <polygon points="195,0 250,0 250,60 220,75 200,55" fill="rgba(190,60,60,0.55)" stroke="#181820" stroke-width="2"/>
+
+        <polygon points="0,60 40,70 50,120 30,140 0,130" fill="rgba(60,100,190,0.5)" stroke="#181820" stroke-width="2"/>
+        <polygon points="40,70 55,50 110,75 120,110 50,120" fill="rgba(170,145,25,0.55)" stroke="#181820" stroke-width="2"/>
+        <polygon points="110,75 140,40 160,70 170,120 120,110" fill="rgba(60,100,190,0.45)" stroke="#181820" stroke-width="2"/>
+        <polygon points="160,70 200,55 220,75 250,60 250,130 210,125 170,120" fill="rgba(190,60,60,0.5)" stroke="#181820" stroke-width="2"/>
+
+        <polygon points="0,130 30,140 50,120 60,160 40,200 0,200" fill="rgba(50,150,80,0.5)" stroke="#181820" stroke-width="2"/>
+        <polygon points="50,120 120,110 130,160 60,160" fill="rgba(50,150,80,0.45)" stroke="#181820" stroke-width="2"/>
+        <polygon points="120,110 170,120 180,165 130,160" fill="rgba(170,145,25,0.5)" stroke="#181820" stroke-width="2"/>
+        <polygon points="170,120 210,125 250,130 250,200 200,200 180,165" fill="rgba(50,150,80,0.5)" stroke="#181820" stroke-width="2"/>
+
+        <polygon points="60,160 130,160 120,200 40,200" fill="rgba(60,100,190,0.5)" stroke="#181820" stroke-width="2"/>
+        <polygon points="130,160 180,165 200,200 120,200" fill="rgba(190,60,60,0.45)" stroke="#181820" stroke-width="2"/>
+
+        <use href="#levi-arch-star" x="18" y="16" width="18" height="18"/>
+        <use href="#levi-arch-star" x="77" y="18" width="18" height="18"/>
+        <use href="#levi-arch-star" x="150" y="12" width="18" height="18"/>
+        <use href="#levi-arch-star" x="212" y="16" width="18" height="18"/>
+        <use href="#levi-arch-star" x="13" y="84" width="18" height="18"/>
+        <use href="#levi-arch-star" x="71" y="68" width="18" height="18"/>
+        <use href="#levi-arch-star" x="136" y="68" width="18" height="18"/>
+        <use href="#levi-arch-star" x="201" y="82" width="18" height="18"/>
+        <use href="#levi-arch-star" x="18" y="144" width="18" height="18"/>
+        <use href="#levi-arch-star" x="76" y="124" width="18" height="18"/>
+        <use href="#levi-arch-star" x="140" y="128" width="18" height="18"/>
+        <use href="#levi-arch-star" x="201" y="148" width="18" height="18"/>
+        <use href="#levi-arch-star" x="70" y="164" width="18" height="18"/>
+        <use href="#levi-arch-star" x="148" y="162" width="18" height="18"/>
+
+        <text x="24" y="62" fill="rgba(255,255,255,0.5)" font-size="10" font-weight="400">c0</text>
+        <text x="82" y="57" fill="rgba(255,255,255,0.5)" font-size="10" font-weight="400">c1</text>
+        <text x="150" y="57" fill="rgba(255,255,255,0.5)" font-size="10" font-weight="400">c2</text>
+        <text x="196" y="48" fill="rgba(255,255,255,0.4)" font-size="11" font-weight="400">···</text>
+        <text x="216" y="62" fill="rgba(255,255,255,0.5)" font-size="10" font-weight="400">c7</text>
+      </g>
+
+      <text x="700" y="286" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">Grid of Behavioral Niches</text>
+      <text x="700" y="300" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">(K-means Centroids)</text>
+
+      <rect class="levi-arch-hover-zone" data-tip="archive" x="550" y="30" width="300" height="312" rx="9"/>
+
+      <rect x="550" y="410" width="280" height="72" rx="7" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="690" y="438" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="13" font-weight="600">Punctuated Equilibrium</text>
+      <text x="690" y="454" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">(Every K evals:</text>
+      <text x="690" y="468" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-weight="300">Paradigm Shifts &amp; Variants)</text>
+      <rect class="levi-arch-hover-zone" data-tip="pe" x="550" y="410" width="280" height="72" rx="7"/>
+    </svg>
+  </div>
 </div>
+
+<script>
+(function () {
+  const root = document.getElementById('levi-arch-diagram');
+  if (!root) return;
+
+  const descriptions = {
+    dspy: {
+      title: "DSPy Prompt Optimization (One-time)",
+      body: "A one-time bootstrap step using DSPy's MIPROv2 optimizer to automatically tune LLM prompts. This removes prompt sensitivity as a variable, making results more robust when switching models or problems."
+    },
+    producers: {
+      title: "N Producer Workers (LLMs: LiteLLM)",
+      body: "N concurrent workers that sample parent solutions from the archive and call LLMs (via LiteLLM) to generate new or mutated code. Running multiple producers in parallel maximizes throughput and exploration."
+    },
+    queue: {
+      title: "Code Queue (Asyncio)",
+      body: "An async buffer decoupling producers from consumers. Production and evaluation run at independent rates, preventing either side from blocking the other."
+    },
+    consumers: {
+      title: "M Consumer Workers (Evaluation in Subprocess)",
+      body: "M workers that pull code from the queue, execute it in isolated subprocesses with hard timeouts, and run scoring functions. Sandboxed execution ensures buggy generated code cannot crash the system."
+    },
+    budget: {
+      title: "Budget Manager (Monitors $, #evals, time)",
+      body: "Tracks LLM API cost, evaluation count, and wall-clock time. When any budget is exhausted, it sends a STOP signal to gracefully shut down the search loop."
+    },
+    archive: {
+      title: "CVT-MAP-Elites Archive",
+      body: "The solution space is partitioned into behavioral niches via Centroidal Voronoi Tessellation. Each niche keeps only its highest-scoring solution, maintaining diversity rather than collapsing to a single optimum."
+    },
+    pe: {
+      title: "Punctuated Equilibrium",
+      body: "Every K evaluations, triggers large-scale mutations or entirely new strategies to escape local optima, alternating incremental refinement with radical changes to avoid stagnation."
+    }
+  };
+
+  const tooltip = document.getElementById('levi-arch-tooltip');
+  if (!tooltip) return;
+  const ttTitle = tooltip.querySelector('.tt-title');
+  const ttBody = tooltip.querySelector('.tt-body');
+
+  root.querySelectorAll('.levi-arch-hover-zone').forEach((zone) => {
+    zone.addEventListener('mouseenter', () => {
+      const key = zone.getAttribute('data-tip');
+      const desc = descriptions[key];
+      if (!desc) return;
+      ttTitle.textContent = desc.title;
+      ttBody.textContent = desc.body;
+      tooltip.classList.add('visible');
+    });
+
+    zone.addEventListener('mousemove', (event) => {
+      const pad = 16;
+      const ttW = tooltip.offsetWidth;
+      const ttH = tooltip.offsetHeight;
+      let x = event.clientX + pad;
+      let y = event.clientY + pad;
+
+      if (x + ttW > window.innerWidth - pad) {
+        x = event.clientX - ttW - pad;
+      }
+      if (y + ttH > window.innerHeight - pad) {
+        y = event.clientY - ttH - pad;
+      }
+
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+    });
+
+    zone.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+  });
+})();
+</script>
 
 *Figure 1: LEVI system overview. Producers generate mutations, consumers evaluate in sandboxed subprocesses, and the CVT-MAP-Elites archive maintains behavioral diversity.*
 
