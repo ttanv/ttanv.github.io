@@ -6,144 +6,55 @@ date: 2026-02-01
 permalink: /levi
 ---
 
-<details markdown="1">
-<summary><strong>Example: LEVI-evolved EPLB strategy (74.6%)</strong></summary>
-
-One of the programs LEVI discovered for EPLB (Expert Parallel Load Balancing). Replicating and assigning MoE experts across GPUs to minimize imbalance. This strategy uses greedy apportionment to decide replica counts, then a snake-mapping placement to spread hot experts evenly across devices.
-
-```python
-import torch
-
-def rebalance_experts(
-    weight: torch.Tensor,
-    num_replicas: int,
-    num_groups: int,
-    num_nodes: int,
-    num_gpus: int,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    '''
-    Rearrange and replicate logical experts across physical GPU slots.
-    Optimized for load balance using Greedy Apportionment and Snake Mapping.
-
-    Parameters:
-        weight: [layers, 64] load statistics
-        num_replicas: 288 (physical experts)
-        num_groups: 8
-        num_nodes: 4
-        num_gpus: 32
-
-    Returns:
-        physical_to_logical_map: [layers, 288] (values 0-63)
-        logical_to_physical_map: [layers, 64, X] (physical indices or -1)
-        expert_count: [layers, 64] (number of replicas per expert)
-    '''
-    num_layers, num_logical = weight.shape
-    device = weight.device
-    slots_per_gpu = num_replicas // num_gpus # 9
-    
-    # --- 1. Expert Apportionment (Greedy) ---
-    # Every expert must have at least 1 replica
-    expert_count = torch.ones((num_layers, num_logical), dtype=torch.int64, device=device)
-    
-    # Remaining 224 slots per layer
-    remaining = num_replicas - num_logical
-    
-    # Work with float64 for precision
-    w_float = weight.to(torch.float64) + 1e-12
-    current_counts = expert_count.clone().to(torch.float64)
-    
-    # Assign remaining slots to experts with highest load-per-replica
-    # Vectorized across layers
-    for _ in range(remaining):
-        priority = w_float / current_counts
-        best_expert = torch.argmax(priority, dim=1)
-        row_indices = torch.arange(num_layers, device=device)
-        expert_count[row_indices, best_expert] += 1
-        current_counts[row_indices, best_expert] += 1.0
-
-    # --- 2. Map Generation ---
-    # Logical IDs and their replica ranks (0, 1, 2...) for every physical slot
-    # sorted by load to allow balanced assignment
-    rep_load_per_expert = w_float / current_counts
-    
-    # Expand logical experts into a flat list of items per layer
-    # expert_offsets: [layers, 65]
-    expert_offsets = torch.zeros((num_layers, num_logical + 1), dtype=torch.int64, device=device)
-    expert_offsets[:, 1:] = torch.cumsum(expert_count, dim=1)
-    
-    # seq: [layers, 288] -> maps flat index to logical expert id
-    seq = torch.arange(num_replicas, device=device).expand(num_layers, -1)
-    logical_ids = torch.searchsorted(expert_offsets, seq, right=True) - 1
-    logical_ids = torch.clamp(logical_ids, 0, num_logical - 1)
-    
-    # Calculate the instance rank (which replica it is for that expert)
-    # rank: [layers, 288]
-    ranks = seq - torch.gather(expert_offsets, 1, logical_ids)
-    
-    # Get load for each individual replica
-    replica_loads = torch.gather(rep_load_per_expert, 1, logical_ids)
-    
-    # Sort replicas by load descending
-    sort_idx = torch.argsort(replica_loads, dim=1, descending=True)
-    sorted_logical = torch.gather(logical_ids, 1, sort_idx)
-    sorted_ranks = torch.gather(ranks, 1, sort_idx)
-
-    # --- 3. Snake Mapping for Load Balancing ---
-    # We map sorted replicas to GPUs using a zig-zag pattern
-    # GPU 0..31, then 31..0, then 0..31...
-    gpu_indices = torch.arange(num_gpus, device=device)
-    placement_list = []
-    for s in range(slots_per_gpu):
-        if s % 2 == 0:
-            order = gpu_indices
-        else:
-            order = gpu_indices.flip(0)
-        # Physical index = gpu_id * 9 + slot_in_gpu
-        placement_list.append(order * slots_per_gpu + s)
-    
-    # placement_order: [288]
-    placement_order = torch.cat(placement_list)
-    
-    physical_to_logical_map = torch.zeros((num_layers, num_replicas), dtype=torch.int64, device=device)
-    physical_rank_map = torch.zeros((num_layers, num_replicas), dtype=torch.int64, device=device)
-    
-    # Scatter the sorted items into the physical slots defined by snake order
-    dest = placement_order.expand(num_layers, -1)
-    physical_to_logical_map.scatter_(1, dest, sorted_logical)
-    physical_rank_map.scatter_(1, dest, sorted_ranks)
-
-    # --- 4. Inverse Map (Logical to Physical) ---
-    max_reps = int(expert_count.max().item())
-    logical_to_physical_map = torch.full((num_layers, num_logical, max_reps), -1, dtype=torch.int64, device=device)
-    
-    # Prepare indices for scatter
-    layer_idx = torch.arange(num_layers, device=device).unsqueeze(1).expand(-1, num_replicas)
-    phys_idx = torch.arange(num_replicas, device=device).expand(num_layers, -1)
-    
-    # Flattened index for 3D tensor: [layer, expert, rank]
-    flat_dest_indices = (
-        layer_idx * (num_logical * max_reps) +
-        physical_to_logical_map * max_reps +
-        physical_rank_map
-    ).reshape(-1)
-    
-    logical_to_physical_map.view(-1).scatter_(0, flat_dest_indices, phys_idx.reshape(-1))
-
-    return physical_to_logical_map, logical_to_physical_map, expert_count
-```
-</details>
-
 ## TLDR
 
-Existing LLM-based evolutionary systems (OpenEvolve, ShinkaEvolve) have weak diversity mechanisms, converge early, and compensate by throwing expensive models at the problem. This leads to bloated costs and unnecessary complexity.
+Existing LLM-based evolutionary systems have weak diversity mechanisms that cause early convergence, compensated by throwing expensive frontier models at the problem. LEVI fixes this at the root: a CVT-MAP-Elites archive with fingerprint-initialized centroids keeps structurally distinct algorithmic families alive throughout the search, while a stratified model allocation routes cheap small models for refinement and reserves larger models for infrequent paradigm shifts. The result is better scores than OpenEvolve, ShinkaEvolve, and GEPA on the ADRS benchmark at 1.5--6.7x lower cost. LEVI will be open-sourced on GitHub soon.
 
-LEVI fixes the root cause: CVT-MAP-Elites with AST-based behavioral fingerprinting keeps a diverse archive where each cell holds the best solution for its behavioral niche. Different algorithmic approaches naturally land in different cells, so the system never collapses onto one strategy. We split mutations into two tiers: cheap small models (e.g. Qwen-30B) for hundreds of narrow mutations, and a larger model (e.g. Gemini Flash) used sparingly for paradigm shifts.
+<img src="/results/comparison_plot.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0;">
 
-Result: Better scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks at **1.5-6.7x lower cost**.
+## Background and Motivation
 
-**LEVI will be open-sourced on GitHub soon.** Point it at a scoring function and a seed program and it runs until the budget is spent.
+The idea of pairing large language models with evolutionary search over programs was introduced by FunSearch, which used an island-based method to discover solutions to problems that are easy to verify but hard to solve. AlphaEvolve then scaled the paradigm, allowing the system to use stronger LLMs, operate on larger codebases, and tackle a broader set of problems. Later works expanded the set of promising applications to include mathematical constructions, heuristic design, prompt optimization, and systems research.
 
-### ADRS Benchmark Results (% score)
+Cheng et al. formalize systems research through their AI-Driven Research for Systems framework (ADRS), defining it as an iterative loop in which LLMs generate candidate solutions (scheduling policies, load balancers, congestion-control algorithms), an evaluator scores them against real systems or simulators, and a selection mechanism guides the population toward better solutions. ADRS is well-suited to systems performance problems because candidates can be verified robustly and cheaply by executing them against representative workloads. Across ten case studies spanning cloud scheduling, mixture-of-experts load balancing, LLM-based SQL optimization, and transaction scheduling, ADRS-generated solutions match or outperform human state-of-the-art designs.
+
+Multiple open-source frameworks implement this paradigm. OpenEvolve is an open-source implementation of AlphaEvolve's core pipeline with island-based evolution, MAP-Elites archiving along a small number of feature dimensions, and heavy reliance on frontier models for every mutation. ShinkaEvolve adds structured introspection through weighted archive sampling, embedding-based novelty filtering, LLM novelty judges, and periodic meta-prompt evolution. GEPA, while mainly targeting prompt optimization, also generalizes to code; it takes a more minimal approach, using per-instance Pareto fronts as an implicit diversity mechanism with natural-language reflection to mutate prompts.
+
+While all three have demonstrated strong results, a pattern is worth noting: diversity tends to be maintained through multiple overlapping mechanisms---islands to separate populations, embeddings to detect similarity, LLM judges to filter trivial rewrites---each compensating where others fall short. This leads to extra complexity without solving the underlying diversity problem. GEPA avoids this complexity through its minimal approach, but its Pareto-based diversity only works well when there is a clear trade-off across the validation set and weakens when performance across instances is highly correlated. Approaches with weaker diversity mechanisms create pressure to use larger models to overcome the convergence that still occurs, thereby increasing the required budget.
+
+The result is that strong performance becomes tightly coupled with large budgets: most ADRS experiments cost \$15--30 per problem and assume access to frontier models like GPT-5 or Gemini-3. We argue that this coupling is not inherent to the paradigm but rather a symptom of inadequate diversity maintenance at the selection level. When the archive fails to preserve behavioral diversity, the search collapses into narrow basins, compensated by throwing stronger models at an increasingly exploitation-heavy loop. In the next section, we describe LEVI, a framework that addresses diversity directly and, as a consequence, substantially reduces the dependence on model scale.
+
+## LEVI: LLM-Evolution through Voronoi Initialization
+
+LEVI is motivated by two core principles. First, we improve diversity maintenance through a CVT-MAP-Elites archive coupled with a novel fingerprint-then-perturb approach for centroid initialization. Second, we introduce a more principled way of utilizing larger models: using them only for infrequent paradigm shifts, and using smaller models for the majority of mutations.
+
+### Improved Archive Diversity
+
+LLM-guided search tends toward mode collapse: the solution archive gets dominated by a single algorithmic strategy and the system spends subsequent iterations polishing it, abandoning structurally distinct alternatives that may ultimately reach higher performance. LEVI uses a CVT-MAP-Elites archive with AST-based and performance-based features as dimensions. We initialize the archive through a novel fingerprint-then-perturb approach, avoiding the sparsity of uniform initialization and the convergence of data-driven approaches.
+
+The process begins by generating a small set of structurally distinct seed programs (usually fewer than 10). Each seed is produced sequentially with full visibility into all prior seeds, and the LLM is explicitly instructed to propose a fundamentally different algorithmic paradigm. This context accumulation ensures successive seeds differentiate from the full set, producing starting points that span distinct regions of the algorithmic landscape. We then produce more variants using these seeds (usually on the order of tens of variants), giving us a pool of diverse approaches. These seeds and variants may score poorly, but for initialization purposes that is fine.
+
+Each candidate is then mapped to a behavioral descriptor that captures its algorithmic identity. Raw structural features (AST depth, loop count, cyclomatic complexity) and per-instance performance scores are extracted, normalized via online z-scores, and mapped to [0, 1] through a sigmoid transform. This formulation unifies two diversity strategies that prior work treats as separate: structural features, as used by OpenEvolve, and per-instance performance vectors, as used by GEPA via Pareto fronts, coexist naturally as dimensions of the same fingerprint. The Voronoi tessellation provides geometric structure over this combined space that Pareto-based approaches lack.
+
+Gaussian noise is added to the fingerprints during initialization. Without perturbation, the archive's geometry would overfit to the specific algorithmic families observed during seeding, leaving little room for novel strategies that emerge later. The noise broadens each family's footprint in descriptor space, allowing the archive to accept future innovations that fall between or outside the seed families. Centroids are then fit to this perturbed distribution via k-means, yielding a Voronoi tessellation whose regions concentrate around parts of the fingerprint space that viable programs actually occupy. In practice this ends up being much more powerful than a uniform approach that is too sparse, or a data-driven approach that converges too fast.
+
+### Principled Model Allocation
+
+A second source of inefficiency in existing frameworks is the treatment of LLM calls as interchangeable. Prior systems either route all mutations through a single model, or maintain an ensemble from which models are sampled uniformly at random. Both approaches ignore a fundamental asymmetry: the cognitive demands of different mutation tasks vary dramatically.
+
+Proposing an entirely new algorithmic paradigm---replacing a greedy strategy with dynamic programming---requires broad knowledge and deep reasoning. Refining an existing approach---adjusting constants, reordering operations, tuning loop bounds---requires far less. Allocating a frontier-scale model to every incremental tweak is wasteful; asking a lightweight model to rethink an algorithm's foundations is unlikely to succeed.
+
+LEVI introduces stratified model allocation, which matches model capacity to task demand. The diversity-preserving archive provides a natural basis for this stratification: the Voronoi regions cluster solutions into algorithmic families, allowing us to select the best approach from each region. Large-capacity models are reserved for high-level exploration: generating candidates that differ from given representatives, proposing paradigm shifts, or bridging between distant algorithmic families. These calls are infrequent but high-impact. Smaller, cheaper models handle the bulk of the search budget: local refinements, parameter sweeps, and incremental improvements within an established family. These calls are frequent and individually low-cost, but collectively responsible for polishing each family's best representative.
+
+The principle is that the expected return on a large-model call is highest when the task demands creative breadth, and the expected return on a small-model call is highest when the task demands efficient local search. By aligning allocation with this asymmetry, LEVI achieves the creative range of frontier models and the throughput of lightweight models simultaneously, at a fraction of the cost of using a single large model throughout.
+
+## Results
+
+We evaluate on the ADRS benchmark suite introduced by Cheng et al., using the problem implementations and evaluation scripts from the Frontier-CS repository. Each problem provides a simulator or evaluator against which candidate programs are executed. Raw metrics are normalized to a 0--100 scale via problem-specific scoring functions. We evaluate on seven of the nine problems: Cloudcast, EPLB, LLM-SQL, Prism, Spot Single-Reg, Spot Multi-Reg, and Transaction Scheduling. Baseline scores for GEPA, OpenEvolve, and ShinkaEvolve are taken directly from the ADRS Leaderboard, where each framework was evaluated using frontier models (GPT-5 and Gemini-3.0-Pro) at costs of \$15--30 per problem.
+
+Our CVT-MAP-Elites archive uses 50 centroids initialized via the fingerprint-then-perturb procedure. We seed evolution with 5 structurally distinct programs generated sequentially with context accumulation. Approximately 90% of LLM calls are routed to lightweight models (Qwen3-30B-A3B and MiMo-v2-Flash) for local refinement, while the remaining 10% use Gemini Flash 3 for paradigm-shift mutations. We run between 600 and 2,000 generations per problem at a total cost of \$4.50 per problem (with the exception of Transaction Scheduling at \$13).
+
+### ADRS Benchmark (% score)
 
 [ADRS](https://ucbskyadrs.github.io/) is a benchmark suite from UC Berkeley for evaluating LLM-guided optimization on real-world systems problems -- cloud scheduling, load balancing, congestion control, SQL optimization, and more.
 
@@ -512,9 +423,17 @@ Result: Better scores than OpenEvolve, ShinkaEvolve, and GEPA on ADRS benchmarks
 })();
 </script>
 
+LEVI achieves the highest score on every problem where improvement is possible, with an average of 76.5 compared to 71.9 for the next-best framework (GEPA), representing a +4.6 point improvement over the prior state of the art. The largest improvements appear on LLM-SQL (+5.8) and Spot Multi (+5.7). For LLM-SQL, the gain is partly attributable to LEVI's higher iteration count: the cheaper per-generation cost enables substantially more evaluations, and the winning solution emerged from a minor modification that produced a disproportionate score jump---the kind of incremental discovery that requires many trials to surface. Spot Multi and EPLB (+4.4) show similarly strong gains, with the EPLB run resulting in entirely different paradigms with high scores. On Cloudcast, LEVI achieves a perfect score of 100.0 (+3.4 over GEPA), indicating that the problem is now fully solved under the benchmark's scoring function.
+
+Improvements on Spot Single (+0.3) and Transaction Scheduling (+1.1) are more modest. We attribute this to problem structure: Spot Single has a smaller decision space than its multi-region counterpart, limiting the benefit of maintaining diverse algorithmic families. Transaction Scheduling is also the most expensive LEVI run (\$13 vs. \$4.50 for other problems), suggesting that this problem's optimization landscape requires more exploration to navigate. Prism remains tied at 87.4 across all frameworks, confirming that the current problem abstraction admits a single dominant solution.
+
+<img src="/results/best_score_progression.png" alt="LEVI best score progression over time" style="max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0;">
+
+An additional observation is that no single baseline is consistently second-best: GEPA leads on Cloudcast and Spot Single, OpenEvolve on LLM-SQL and Transaction Scheduling, and ShinkaEvolve on EPLB. This variance reflects the different diversity mechanisms each framework employs and their uneven effectiveness across problem structures. LEVI's consistent first-place performance across all seven tasks suggests that CVT-MAP-Elites with fingerprint-initialized centroids provides a more robust diversity mechanism than the alternatives, regardless of problem characteristics.
+
 ### Cost per Problem
 
-Because LEVI's diversity mechanism prevents early stagnation, we don't need expensive models to compensate. Most mutations use small models (e.g.Qwen-30B, Minimax 100B) at fractions of a cent each, and the system runs for more generations instead. The result: 1.5-6.7x cheaper per problem while matching or beating systems that rely on Gemini 3.0 Pro and GPT 5.2.
+LEVI's stratified model allocation is the primary driver of cost reduction. By routing approximately 90% of mutations through lightweight models and reserving Gemini Flash 3 for infrequent paradigm shifts, the per-generation cost drops by roughly an order of magnitude compared to baselines that use GPT-5 or Gemini-3.0-Pro for every call. This allows LEVI to run 600--2,000 generations---substantially more than the baselines' typical 100 iterations---while still spending less in total.
 
 <div class="adrs-dashboard">
   <div class="adrs-chart-container" style="height: 320px;">
@@ -655,25 +574,23 @@ Because LEVI's diversity mechanism prevents early stagnation, we don't need expe
 })();
 </script>
 
-## The Problem with Existing Systems
+The result supports our central thesis: the coupling between strong performance and large budgets in prior work is a symptom of inadequate diversity maintenance, not an inherent property of the paradigm. When the archive preserves behavioral diversity, small models suffice for the majority of the search, and expensive models need only be invoked sparingly for creative leaps.
 
-The open-source LLM evolution ecosystem optimizes the **wrong parts of the stack**. Systems use large LLMs (Claude Sonnet 4.5, Gemini 3.0 Pro, GPT 5.2), add LLM-as-judge filters and embedding-based deduplication, and still converge within a few hundred generations. The expensive models aren't the cause; they're a symptom of early stagnation. If your system plateaus quickly, of course you want the strongest model for each generation!
+### Controlled Architecture Comparison
 
-<!-- How do we know more generations help? DeepMind's FunSearch needed ~1 million generations; AlphaEvolve needed thousands. FunSearch even found that larger LLMs didn't help; it was only AlphaEvolve that could harness them. While not the strongest argument,  -->
+The main results compare frameworks that differ simultaneously in search architecture, model choice, and budget. To isolate the contribution of the search architecture alone, we run LEVI, OpenEvolve, and GEPA under identical conditions: a single locally-served Qwen3-30B-A3B model, 750 successful evaluations, and three random seeds per framework on two problems.
 
-LEVI aims to dismiss two notions:
+Transaction Scheduling is a variant of an NP-hard ordering problem that produced the highest cost in our main evaluation. Multiple algorithmic families (greedy, simulated annealing, genetic) yield viable solutions, but performance is measured on a single instance, providing no per-instance trade-off for Pareto-based diversity to exploit. LEVI reaches a score of 62 within the first 100 evaluations---a level that neither baseline achieves at any point during the run. The final scores reflect this gap: LEVI attains 64.9, compared to 59.9 for OpenEvolve and 54.4 for GEPA. OpenEvolve's curve flattens sharply after evaluation 300 and GEPA plateaus even earlier, consistent with early convergence onto a single algorithmic family. LEVI's curve continues rising through evaluation 500, indicating that the archive sustains exploration of distinct strategies well into the search.
 
-- "LLM evolution must be expensive": we show 1.5-6.7x budget reductions
-- "You need SOTA models": we mainly use 30B-100B models, with Gemini Flash sparingly
+<img src="/results/cbl_plot3.png" alt="Framework comparison on Can't Be Late" style="max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0;">
 
-Two core improvements:
+On Can't Be Late, scored across 1,080 simulations that give Pareto-based approaches a richer signal, the final-score gap narrows---LEVI scores 44.9 versus OpenEvolve's 43.2 and GEPA's 32.6---but the efficiency gap widens dramatically. LEVI reaches its near-peak score by approximately evaluation 50, while OpenEvolve requires over 600 evaluations to approach the same level, representing a roughly 12x advantage in sample efficiency. Even with favorable problem structure for Pareto-based approaches, GEPA still trails significantly, suggesting that Pareto diversity alone underperforms archive-level diversity maintenance.
 
-1. Better diversity maintenance in the solution archive
-2. Smarter model allocation cheap models for refinement, expensive models only for paradigm shifts
+These results confirm that the performance--cost coupling observed in prior work arises from search architecture limitations, not from an inherent need for frontier-scale models. A 30B model under LEVI's search regime matches or exceeds what the same model achieves under OpenEvolve's island-based evolution or GEPA's Pareto selection, with the gap attributable entirely to how each framework maintains diversity.
 
 ## System Design
 
-DSPy optimizes mutation prompts once up front, then producer workers sample parents from the CVT-MAP-Elites archive via LiteLLM, push candidate code through an asyncio queue, and consumer workers evaluate each candidate in a sandboxed subprocess. The archive only accepts improvements per behavioral niche. Punctuated Equilibrium periodically triggers paradigm shifts, and a budget manager shuts everything down when the dollar/eval/time limit is hit.
+The architecture follows a producer-consumer pattern. DSPy optimizes mutation prompts once up front, then N producer workers sample parents from the CVT-MAP-Elites archive via LiteLLM, push candidate code through an asyncio queue, and M consumer workers evaluate each candidate in a sandboxed subprocess with hard timeouts. The archive only accepts improvements per behavioral niche. Punctuated equilibrium periodically triggers paradigm shifts using the larger model, and a budget manager shuts everything down when the dollar, eval, or time limit is hit.
 
 <div class="diagram">
   <div class="levi-arch-diagram" id="levi-arch-diagram">
@@ -877,61 +794,133 @@ DSPy optimizes mutation prompts once up front, then producer workers sample pare
 })();
 </script>
 
-*Figure 1: LEVI system overview. Producers generate mutations, consumers evaluate in sandboxed subprocesses, and the CVT-MAP-Elites archive maintains behavioral diversity.*
+Budget enforcement is by construction: the pipeline checks dollars, eval count, and wall time before every LLM call and shuts down cleanly when any limit is hit. Archive access is lock-protected but contention stays low since LLM calls and evaluations happen outside the lock. A one-time DSPy MIPROv2 pass tunes mutation prompts per model before the main loop begins, removing prompt sensitivity as a variable.
 
-## Key Components
+<details markdown="1">
+<summary>Example: LEVI-evolved EPLB strategy (74.6%)</summary>
 
-### CVT-MAP-Elites Archive
+One of the programs LEVI discovered for EPLB (Expert Parallel Load Balancing). Replicating and assigning MoE experts across GPUs to minimize imbalance. This strategy uses greedy apportionment to decide replica counts, then a snake-mapping placement to spread hot experts evenly across devices.
 
-MAP-Elites is a quality-diversity algorithm: instead of tracking one best solution, it partitions solution *behaviors* into cells and keeps the single best program per cell. A greedy approach and a DP approach coexist, each the best of its kind.
+```python
+import torch
 
-We use Centroidal Voronoi Tessellation (CVT) to define cells via k-means centroids. Programs are assigned to their nearest centroid. Empty cell? Move in. Occupied? Replace only if the new score is higher.
+def rebalance_experts(
+    weight: torch.Tensor,
+    num_replicas: int,
+    num_groups: int,
+    num_nodes: int,
+    num_gpus: int,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    '''
+    Rearrange and replicate logical experts across physical GPU slots.
+    Optimized for load balance using Greedy Apportionment and Snake Mapping.
 
-Behavior is defined by AST features: loop depth, branch count, cyclomatic complexity, math operators, etc. These fingerprint the *shape* of an algorithm without running it. A greedy scheduler and a DP approach with nested loops naturally land in different cells.
+    Parameters:
+        weight: [layers, 64] load statistics
+        num_replicas: 288 (physical experts)
+        num_groups: 8
+        num_nodes: 4
+        num_gpus: 32
 
-Parent selection uses softmax sampling weighted by fitness, with multiple temperatures running simultaneously; some greedily exploiting top solutions, others broadly exploring.
+    Returns:
+        physical_to_logical_map: [layers, 288] (values 0-63)
+        logical_to_physical_map: [layers, 64, X] (physical indices or -1)
+        expert_count: [layers, 64] (number of replicas per expert)
+    '''
+    num_layers, num_logical = weight.shape
+    device = weight.device
+    slots_per_gpu = num_replicas // num_gpus # 9
 
-### Tiered Model Strategy
+    # --- 1. Expert Apportionment (Greedy) ---
+    # Every expert must have at least 1 replica
+    expert_count = torch.ones((num_layers, num_logical), dtype=torch.int64, device=device)
 
-Small models (e.g. Qwen-30B) handle 90%+ of mutations: tweaking thresholds, swapping sort keys, adjusting heuristics. Cheap enough to call hundreds of times.
+    # Remaining 224 slots per layer
+    remaining = num_replicas - num_logical
 
-Large models (Gemini Flash) are used sparingly for paradigm shifts: synthesizing the best solutions from different behavioral regions into something fundamentally new.
+    # Work with float64 for precision
+    w_float = weight.to(torch.float64) + 1e-12
+    current_counts = expert_count.clone().to(torch.float64)
 
+    # Assign remaining slots to experts with highest load-per-replica
+    # Vectorized across layers
+    for _ in range(remaining):
+        priority = w_float / current_counts
+        best_expert = torch.argmax(priority, dim=1)
+        row_indices = torch.arange(num_layers, device=device)
+        expert_count[row_indices, best_expert] += 1
+        current_counts[row_indices, best_expert] += 1.0
+
+    # --- 2. Map Generation ---
+    # Logical IDs and their replica ranks (0, 1, 2...) for every physical slot
+    # sorted by load to allow balanced assignment
+    rep_load_per_expert = w_float / current_counts
+
+    # Expand logical experts into a flat list of items per layer
+    # expert_offsets: [layers, 65]
+    expert_offsets = torch.zeros((num_layers, num_logical + 1), dtype=torch.int64, device=device)
+    expert_offsets[:, 1:] = torch.cumsum(expert_count, dim=1)
+
+    # seq: [layers, 288] -> maps flat index to logical expert id
+    seq = torch.arange(num_replicas, device=device).expand(num_layers, -1)
+    logical_ids = torch.searchsorted(expert_offsets, seq, right=True) - 1
+    logical_ids = torch.clamp(logical_ids, 0, num_logical - 1)
+
+    # Calculate the instance rank (which replica it is for that expert)
+    # rank: [layers, 288]
+    ranks = seq - torch.gather(expert_offsets, 1, logical_ids)
+
+    # Get load for each individual replica
+    replica_loads = torch.gather(rep_load_per_expert, 1, logical_ids)
+
+    # Sort replicas by load descending
+    sort_idx = torch.argsort(replica_loads, dim=1, descending=True)
+    sorted_logical = torch.gather(logical_ids, 1, sort_idx)
+    sorted_ranks = torch.gather(ranks, 1, sort_idx)
+
+    # --- 3. Snake Mapping for Load Balancing ---
+    # We map sorted replicas to GPUs using a zig-zag pattern
+    # GPU 0..31, then 31..0, then 0..31...
+    gpu_indices = torch.arange(num_gpus, device=device)
+    placement_list = []
+    for s in range(slots_per_gpu):
+        if s % 2 == 0:
+            order = gpu_indices
+        else:
+            order = gpu_indices.flip(0)
+        # Physical index = gpu_id * 9 + slot_in_gpu
+        placement_list.append(order * slots_per_gpu + s)
+
+    # placement_order: [288]
+    placement_order = torch.cat(placement_list)
+
+    physical_to_logical_map = torch.zeros((num_layers, num_replicas), dtype=torch.int64, device=device)
+    physical_rank_map = torch.zeros((num_layers, num_replicas), dtype=torch.int64, device=device)
+
+    # Scatter the sorted items into the physical slots defined by snake order
+    dest = placement_order.expand(num_layers, -1)
+    physical_to_logical_map.scatter_(1, dest, sorted_logical)
+    physical_rank_map.scatter_(1, dest, sorted_ranks)
+
+    # --- 4. Inverse Map (Logical to Physical) ---
+    max_reps = int(expert_count.max().item())
+    logical_to_physical_map = torch.full((num_layers, num_logical, max_reps), -1, dtype=torch.int64, device=device)
+
+    # Prepare indices for scatter
+    layer_idx = torch.arange(num_layers, device=device).unsqueeze(1).expand(-1, num_replicas)
+    phys_idx = torch.arange(num_replicas, device=device).expand(num_layers, -1)
+
+    # Flattened index for 3D tensor: [layer, expert, rank]
+    flat_dest_indices = (
+        layer_idx * (num_logical * max_reps) +
+        physical_to_logical_map * max_reps +
+        physical_rank_map
+    ).reshape(-1)
+
+    logical_to_physical_map.view(-1).scatter_(0, flat_dest_indices, phys_idx.reshape(-1))
+
+    return physical_to_logical_map, logical_to_physical_map, expert_count
 ```
-FunSearch
-·→  ·→  ·→
-   ↗         ↘
-  ·→ ·→ ·→ ·→ ·→ ·→ ·→ ... (millions) ... → ★
-   ↘         ↗
-    ·→  ·→  ·→
+</details>
 
-
-LEVI
-·═════►  ·→ ·→  ═════►  ·→ ·→  ═════►  ·→ → ★
-              ↘ ·→           ↘ ·→
-              ↗ ·→           ↗ ·→
-```
-
-*Figure 2: FunSearch uses millions of small mutations. LEVI alternates paradigm shifts (═════►) from a larger model with narrow mutations (·→) from smaller models.*
-
-This is implemented via Punctuated Equilibrium (every K evaluations):
-
-1. Cluster archive cells into behavioral regions
-2. Pick the best elite from each cluster
-3. Generate a paradigm shift with the heavy model (prompt adapts to budget stage: radical early, synthesis mid-run, surgical refinement late)
-4. Generate variants with lighter models
-5. Insert with noise on behavior vectors to explore adjacent cells
-
-### Prompt Optimization
-
-A one-time DSPy MIPROv2 pass tunes mutation prompts per model. The metric rewards compilable, score-improving code and penalizes overly prescriptive prompts.
-
-### Async Pipeline
-
-N producer workers sample parents, call LLMs, push code to an asyncio queue. M consumer workers evaluate in sandboxed subprocesses (`ResilientProcessPool` with hard SIGKILL timeouts). Archive access is lock-protected but contention stays low since LLM calls and evaluations happen outside the lock.
-
-**Budget enforcement is by-construction**: the pipeline checks dollars, eval count, and wall time before every LLM call and shuts down cleanly when any limit is hit.
-
-## Putting It Together
-
-A typical LEVI run: **$4.50 total**, 12 LLM workers, 50 eval workers, punctuated equilibrium every 10 evaluations. Small models (e.g. Qwen-30B) handle 90%+ of mutations at fractions of a cent each. Gemini Flash handles paradigm shifts at a few cents each.
+LEVI will be open-sourced on GitHub soon. Point it at a scoring function and a seed program and it runs until the budget is spent.

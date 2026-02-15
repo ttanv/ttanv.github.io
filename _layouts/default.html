@@ -123,12 +123,12 @@
       }
     })();
   </script>
-  <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;padding-top:10px;">
+  <table style="width:100%;max-width:920px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;padding-top:20px;">
     <tr style="padding:0px">
       <td style="padding:0px">
         <table id="about" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr style="padding:0px">
-            <td style="padding:2.5%;padding-top:0;width:60%;vertical-align:middle">
+            <td style="padding:3%;padding-top:0;width:60%;vertical-align:middle">
               <h1>
                 Temoor Tanveer
               </h1>
@@ -145,15 +145,15 @@
                 <a href="https://www.linkedin.com/in/ttanv/">LinkedIn</a>
               </p>
             </td>
-            <td style="padding:2.5%;width:40%;max-width:40%;vertical-align:middle">
-              <img style="width:75%;max-width:75%" alt="profile photo" src="images/TemoorImgCropped.jpeg">
+            <td style="padding:3%;width:40%;max-width:40%;vertical-align:middle">
+              <img style="width:70%;max-width:70%" alt="profile photo" src="images/TemoorImgCropped.jpeg">
             </td>
           </tr>
         </table>
 
         <table id="research" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr>
-            <td style="padding:2.5%;width:100%;vertical-align:middle">
+            <td style="padding:3%;width:100%;vertical-align:middle">
               <h2>Research Interests</h2>
               <p>
                 I'm interested in:
@@ -169,7 +169,7 @@
 
         <table id="publications" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr>
-            <td style="padding:2.5%;width:100%;vertical-align:middle">
+            <td style="padding:3%;width:100%;vertical-align:middle">
               <h2>Publications</h2>
             </td>
           </tr>
@@ -180,7 +180,7 @@
           {% for cat in post.categories %}
           {% if cat == 'research' %}
           <tr>
-            <td style="padding:2.5%;width:30%;vertical-align:middle;min-width:180px">
+            <td style="padding:3%;width:30%;vertical-align:middle;min-width:180px">
               {% if post.image %}
               <img src="{{post.image}}" alt="project image" style="width:100%; height:auto; max-width:100%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
               <div class="img-placeholder" style="display:none;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">Image coming soon</div>
@@ -188,7 +188,7 @@
               <div class="img-placeholder" style="display:flex;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">No image</div>
               {% endif %}
             </td>
-            <td style="padding:2.5%;width:75%;vertical-align:middle">
+            <td style="padding:3%;width:75%;vertical-align:middle">
               <h3>{{post.title}}</h3>
               <br>
               {{post.authors}}
@@ -230,7 +230,7 @@
         <br>
         <table id="projects" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr>
-            <td style="padding:2.5%;width:100%;vertical-align:middle">
+            <td style="padding:3%;width:100%;vertical-align:middle">
               <h2>Personal Projects</h2>
             </td>
           </tr>
@@ -241,7 +241,7 @@
           {% for cat in post.categories %}
           {% if cat == 'Intel' %}
           <tr>
-            <td style="padding:2.5%;width:35%;vertical-align:middle;min-width:200px">
+            <td style="padding:3%;width:35%;vertical-align:middle;min-width:200px">
               {% if post.image %}
               {% if post.image_dark %}
               <img src="{{post.image}}" alt="project image" class="img-light" style="width:100%; height:auto; max-width:100%;" onerror="this.style.display='none';" />
@@ -254,7 +254,7 @@
               <div class="img-placeholder" style="display:flex;width:100%;aspect-ratio:4/3;background:var(--border-color);align-items:center;justify-content:center;color:var(--text-secondary);font-size:12px;">No image</div>
               {% endif %}
             </td>
-            <td style="padding:2.5%;width:75%;vertical-align:middle">
+            <td style="padding:3%;width:75%;vertical-align:middle">
               <h3>{% if post.blog_url %}<a href="{{post.blog_url}}">{{post.title}}</a>{% else %}{{post.title}}{% endif %}</h3>
               <br>
               {% if post.blog_url %}
@@ -276,7 +276,7 @@
         <br>
         <table id="teaching" style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
           <tr>
-            <td style="padding:2.5%;width:100%;vertical-align:middle">
+            <td style="padding:3%;width:100%;vertical-align:middle">
               <h2>Teaching</h2>
               <p>I served as a teaching assistant at CMU for:</p>
               <ul>

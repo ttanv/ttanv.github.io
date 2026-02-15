@@ -3,7 +3,7 @@
 
 // Color variables for theming - default to dark
 :root {
-  --bg-color: #111111;
+  --bg-color: #0d0d0d;
   --text-color: #d4d4d4;
   --text-secondary: #888888;
   --primary-color: #e0e0e0;
@@ -34,8 +34,8 @@
   --adrs-table-bg: var(--card-bg);
   --adrs-head-bg: rgba(255, 255, 255, 0.04);
   --adrs-row-hover: rgba(255, 255, 255, 0.04);
-  --adrs-levi-bg: rgba(192, 57, 43, 0.12);
-  --adrs-levi-border: #c0392b;
+  --adrs-levi-bg: rgba(255, 255, 255, 0.03);
+  --adrs-levi-border: #d4756b;
   --adrs-average-bg: rgba(255, 255, 255, 0.02);
   --adrs-human: #64748b;
   --adrs-gepa: #10b981;
@@ -46,7 +46,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color: #111111;
+    --bg-color: #0d0d0d;
     --text-color: #d4d4d4;
     --text-secondary: #888888;
     --primary-color: #e0e0e0;
@@ -77,14 +77,14 @@
     --adrs-table-bg: var(--card-bg);
     --adrs-head-bg: rgba(255, 255, 255, 0.04);
     --adrs-row-hover: rgba(255, 255, 255, 0.04);
-    --adrs-levi-bg: rgba(192, 57, 43, 0.12);
-    --adrs-levi-border: #c0392b;
+    --adrs-levi-bg: rgba(255, 255, 255, 0.03);
+    --adrs-levi-border: #d4756b;
     --adrs-average-bg: rgba(255, 255, 255, 0.02);
-    --adrs-human: #9ca3af;
-    --adrs-gepa: #7a9e8a;
-    --adrs-openevolve: #8b96b3;
-    --adrs-shinka: #b0a07a;
-    --adrs-levi: #c0392b;
+    --adrs-human: #64748b;
+    --adrs-gepa: #10b981;
+    --adrs-openevolve: #6366f1;
+    --adrs-shinka: #f59e0b;
+    --adrs-levi: #ef4444;
   }
 }
 
@@ -100,7 +100,7 @@
 
 // Manual dark mode toggle support
 [data-theme="dark"] {
-  --bg-color: #111111;
+  --bg-color: #0d0d0d;
   --text-color: #d4d4d4;
   --text-secondary: #888888;
   --primary-color: #e0e0e0;
@@ -131,8 +131,8 @@
   --adrs-table-bg: var(--card-bg);
   --adrs-head-bg: rgba(255, 255, 255, 0.04);
   --adrs-row-hover: rgba(255, 255, 255, 0.04);
-  --adrs-levi-bg: rgba(192, 57, 43, 0.12);
-  --adrs-levi-border: #c0392b;
+  --adrs-levi-bg: rgba(255, 255, 255, 0.03);
+  --adrs-levi-border: #d4756b;
   --adrs-average-bg: rgba(255, 255, 255, 0.02);
   --adrs-human: #64748b;
   --adrs-gepa: #10b981;
@@ -245,8 +245,8 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
   margin: 0;
   padding: 0;
-  padding-top: 50px;
-  line-height: 1.6;
+  padding-top: 60px;
+  line-height: 1.75;
 }
 
 /* Code styling */
@@ -259,21 +259,21 @@ code, pre {
   color: var(--code-inline-text);
   border: 1px solid var(--code-border);
   border-radius: 6px;
-  padding: 0.1em 0.35em;
+  padding: 0.15em 0.4em;
 }
 
 .highlight {
-  margin: 16px 0;
+  margin: 20px 0;
 }
 
 .highlight pre, pre {
   background: var(--code-bg);
   color: var(--code-text);
   border: 1px solid var(--code-border);
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 20px;
   overflow-x: auto;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .highlight pre {
@@ -349,7 +349,7 @@ pre code, .highlight code {
   border-bottom: 1px solid var(--border-color);
   z-index: 999;
   padding: 0 20px;
-  height: 50px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -364,8 +364,8 @@ pre code, .highlight code {
 .nav-links a {
   color: var(--text-secondary);
   text-decoration: none;
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 10px 20px;
+  font-size: 15px;
   font-weight: 500;
   transition: color 0.2s ease;
 }
@@ -394,31 +394,31 @@ p,
 a,
 li {
   font-family: 'Inter', 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.75;
 }
 
 strong {
   font-family: 'Inter', 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--heading-color);
 }
 
 h1 {
   font-family: 'Inter', 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   font-weight: 700;
   color: var(--heading-color);
   text-align: left;
   padding: 0;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   letter-spacing: -0.02em;
 }
 
 h2 {
   font-family: 'Inter', 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--heading-color);
   padding: 0;
@@ -426,12 +426,12 @@ h2 {
   display: inline;
   letter-spacing: -0.01em;
   border-bottom: 2px solid var(--accent-color);
-  padding-bottom: 4px;
+  padding-bottom: 6px;
 }
 
 h3 {
   font-family: 'Inter', 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--heading-color);
   padding: 0;
@@ -441,17 +441,17 @@ h3 {
 
 p {
   color: var(--text-color);
-  margin: 0.75rem 0;
+  margin: 1rem 0;
 }
 
 ul {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+  padding-left: 1.75rem;
 }
 
 li {
   color: var(--text-color);
-  margin: 0.4rem 0;
+  margin: 0.5rem 0;
 }
 
 em {
@@ -511,7 +511,7 @@ span.highlight {
 .diagram {
   display: flex;
   justify-content: center;
-  margin: 1.5rem 0;
+  margin: 2rem 0;
 }
 
 .diagram img {
@@ -522,7 +522,7 @@ span.highlight {
 .levi-arch-diagram {
   position: relative;
   width: min(100%, 920px);
-  padding: 16px;
+  padding: 20px;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   background: var(--card-bg);
@@ -773,7 +773,7 @@ span.highlight {
 
 /* ADRS Dashboard */
 .adrs-dashboard {
-  margin: 1.5rem 0;
+  margin: 2rem 0;
 }
 
 .adrs-controls {
@@ -949,14 +949,14 @@ span.highlight {
 /* Mobile responsiveness */
 @media screen and (max-width: 768px) {
   body, td, th, tr, p, a, li {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   h1 {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
 
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
 }
