@@ -1,6 +1,6 @@
 ---
 layout: blog
-title: "LEVI: LLM Evolution using Voronoi Initialization"
+title: "LEVI: Better LLM Optimization for the Price of a Cup of Coffee"
 subtitle: "An open-source evolutionary framework for algorithmic discovery."
 date: 2026-02-01
 permalink: /levi
@@ -50,32 +50,6 @@ LEVI takes a different starting point. Rather than building the harness around t
 ## LEVI
 
 <p class="section-desc">LEVI is built on two core ideas: <strong>stratified model allocation</strong> and <strong>improved diversity maintenance</strong>. While explained separately, they are best understood as extensions of each other---the archive provides the structure that makes principled allocation possible, and principled allocation is what makes a diversity-preserving archive practical under tight budgets.</p>
-
-### Stratified Model Allocation
-
-<p class="section-desc">Match model capacity to task demand: cheap models for refinement, expensive models for paradigm shifts.</p>
-
-Frontier models help---but they are a waste if used for every mutation. Smaller LLMs may actually be preferred under tight budgets, since the sheer quantity of solutions they produce can outweigh the quality advantage of larger models. However, smaller models have a narrower pretraining distribution, limiting their range of ideas and ability to propose fundamentally different approaches. Neither model class is strictly better; they have different strengths.
-
-Some existing frameworks already support multiple models, but treat them as interchangeable---sampling from an ensemble uniformly or routing calls without regard to what the mutation actually demands. This ignores a natural asymmetry: proposing an entirely new algorithmic direction requires broad knowledge and creative reasoning, while refining an existing approach---adjusting constants, reordering operations, tuning edge cases---requires far less. The harness should be aware of this distinction and allocate accordingly.
-
-LEVI introduces stratified model allocation, which matches model capacity to task demand. Smaller, cheaper models handle the majority of the search: local refinements and incremental improvements within an established algorithmic family. Larger models are reserved for infrequent *paradigm shifts*---mutations that aim to propose structurally different approaches rather than polish existing ones. The principle is straightforward: allocate each model toward its strength. Small models for breadth and throughput, large models for creative leaps.
-
-However, this raises two questions. First, how do we select representative solutions from each algorithmic family to give the larger model meaningful context for paradigm shifts? Second, since we now rely more heavily on smaller models and their volume of output, we need a more robust mechanism to prevent the archive from converging---quantity without diversity is just noise.
-
-### Improved Diversity Maintenance
-
-<p class="section-desc">A unified fingerprint space with noise-perturbed initialization keeps the archive structurally diverse throughout the search.</p>
-
-The diversity mechanism must address two things: how to represent solutions and how to initialize the archive.
-
-**Unifying structural and performance diversity.** Existing frameworks maintain diversity along different axes. OpenEvolve considers structural features like code length; GEPA considers per-instance performance trade-offs through Pareto fronts. Both capture something real, but neither captures the full picture---structure alone misses behavioral differences, and per-instance scores alone miss solutions that perform similarly but work in fundamentally different ways. Rather than choosing one, we use both as dimensions of a single behavioral descriptor. Each solution is mapped to a *fingerprint*: a vector of AST-based structural features (depth, loop count, cyclomatic complexity, etc.) alongside per-instance performance scores, normalized and projected to [0, 1]. This fingerprint lives in a CVT-MAP-Elites archive, where a Voronoi tessellation over the combined space maintains geometric structure that neither axis provides alone. This also directly answers the first question from the previous section: the Voronoi regions naturally cluster solutions into algorithmic families, giving us representative solutions for paradigm shifts.
-
-**Initializing between two extremes.** Traditional CVT-MAP-Elites initializes centroids uniformly across the descriptor space. With the higher dimensionality we use (6--10 dims), this leads to an extremely sparse tessellation---most regions will never be visited. A purely data-driven approach---fitting centroids to the first observed solutions---solves sparsity but creates the opposite problem: the archive's geometry overfits to whatever strategies appear early, leaving little room for novel approaches that emerge later. We take a middle path: *data-driven initialization with noise*. We generate a small set of structurally distinct seed programs (fewer than 10), expand them into variants, fingerprint them all, and then add Gaussian noise before fitting centroids. The seeds anchor the tessellation in regions of the space that viable programs actually occupy, while the noise broadens each family's footprint, ensuring the archive can accept innovations that fall between or outside the initial seed families. In practice, this is much more effective than either extreme.
-
-### System Design
-
-<p class="section-desc">A producer-consumer architecture with async evaluation and budget enforcement. Hover over components for details.</p>
 
 <div class="diagram">
   <div class="levi-arch-diagram" id="levi-arch-diagram">
@@ -137,11 +111,11 @@ The diversity mechanism must address two things: how to represent solutions and 
       <text x="478" y="206" text-anchor="end" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">Update if</text>
       <text x="478" y="220" text-anchor="end" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">Score &gt; Existing</text>
 
-      <!-- Connection: Budget → PE (STOP) -->
+      <!-- Connection: Budget → Paradigm Shifts (STOP) -->
       <line x1="370" y1="367" x2="538" y2="367" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
       <text x="392" y="359" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">STOP signal on exhaustion</text>
 
-      <!-- Connection: PE → Archive -->
+      <!-- Connection: Paradigm Shifts → Archive -->
       <line x1="690" y1="340" x2="690" y2="310" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
 
       <!-- CVT-MAP-Elites Archive -->
@@ -196,11 +170,11 @@ The diversity mechanism must address two things: how to represent solutions and 
 
       <rect class="levi-arch-hover-zone" data-tip="archive" x="540" y="10" width="320" height="298" rx="9"/>
 
-      <!-- Punctuated Equilibrium -->
+      <!-- Paradigm Shifts -->
       <rect x="540" y="330" width="300" height="78" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="690" y="358" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">Punctuated Equilibrium</text>
+      <text x="690" y="358" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">Paradigm Shifts</text>
       <text x="690" y="376" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">(Every K evals:</text>
-      <text x="690" y="392" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">Paradigm Shifts &amp; Variants)</text>
+      <text x="690" y="392" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">New Strategies &amp; Variants)</text>
       <rect class="levi-arch-hover-zone" data-tip="pe" x="540" y="330" width="300" height="78" rx="7"/>
     </svg>
   </div>
@@ -233,7 +207,7 @@ The diversity mechanism must address two things: how to represent solutions and 
       body: "The solution space is partitioned into behavioral niches via Centroidal Voronoi Tessellation. Each niche keeps only its highest-scoring solution, maintaining diversity rather than collapsing to a single optimum."
     },
     pe: {
-      title: "Punctuated Equilibrium",
+      title: "Paradigm Shifts",
       body: "Every K evaluations, triggers large-scale mutations or entirely new strategies to escape local optima, alternating incremental refinement with radical changes to avoid stagnation."
     }
   };
@@ -278,7 +252,30 @@ The diversity mechanism must address two things: how to represent solutions and 
 })();
 </script>
 
-<p class="figure-caption">Figure 2: LEVI system architecture. Hover over each component for a detailed description.</p>
+<p class="figure-caption">Hover over each component for a detailed description.</p>
+
+### Stratified Model Allocation
+
+<p class="section-desc">Match model capacity to task demand: cheap models for refinement, expensive models for paradigm shifts.</p>
+
+Frontier models help---but they are a waste if used for every mutation. Smaller LLMs may actually be preferred under tight budgets, since the sheer quantity of solutions they produce can outweigh the quality advantage of larger models. However, smaller models have a narrower pretraining distribution, limiting their range of ideas and ability to propose fundamentally different approaches. Neither model class is strictly better; they have different strengths.
+
+Some existing frameworks already support multiple models, but treat them as interchangeable---sampling from an ensemble uniformly or routing calls without regard to what the mutation actually demands. This ignores a natural asymmetry: proposing an entirely new algorithmic direction requires broad knowledge and creative reasoning, while refining an existing approach---adjusting constants, reordering operations, tuning edge cases---requires far less. The harness should be aware of this distinction and allocate accordingly.
+
+LEVI introduces stratified model allocation, which matches model capacity to task demand. Smaller, cheaper models handle the majority of the search: local refinements and incremental improvements within an established algorithmic family. Larger models are reserved for infrequent *paradigm shifts*---mutations that aim to propose structurally different approaches rather than polish existing ones. The principle is straightforward: allocate each model toward its strength. Small models for breadth and throughput, large models for creative leaps.
+
+However, this raises two questions. First, how do we select representative solutions from each algorithmic family to give the larger model meaningful context for paradigm shifts? Second, since we now rely more heavily on smaller models and their volume of output, we need a more robust mechanism to prevent the archive from converging---quantity without diversity is just noise.
+
+### Improved Diversity Maintenance
+
+<p class="section-desc">A unified fingerprint space with noise-perturbed initialization keeps the archive structurally diverse throughout the search.</p>
+
+The diversity mechanism must address two things: how to represent solutions and how to initialize the archive.
+
+**Unifying structural and performance diversity.** Existing frameworks maintain diversity along different axes. OpenEvolve considers structural features like code length; GEPA considers per-instance performance trade-offs through Pareto fronts. Both capture something real, but neither captures the full picture---structure alone misses behavioral differences, and per-instance scores alone miss solutions that perform similarly but work in fundamentally different ways. Rather than choosing one, we use both as dimensions of a single behavioral descriptor. Each solution is mapped to a *fingerprint*: a vector of AST-based structural features (depth, loop count, cyclomatic complexity, etc.) alongside per-instance performance scores, normalized and projected to [0, 1]. This fingerprint lives in a CVT-MAP-Elites archive, where a Voronoi tessellation over the combined space maintains geometric structure that neither axis provides alone. This also directly answers the first question from the previous section: the Voronoi regions naturally cluster solutions into algorithmic families, giving us representative solutions for paradigm shifts.
+
+**Initializing between two extremes.** Traditional CVT-MAP-Elites initializes centroids uniformly across the descriptor space. With the higher dimensionality we use (6--10 dims), this leads to an extremely sparse tessellation---most regions will never be visited. A purely data-driven approach---fitting centroids to the first observed solutions---solves sparsity but creates the opposite problem: the archive's geometry overfits to whatever strategies appear early, leaving little room for novel approaches that emerge later. We take a middle path: *data-driven initialization with noise*. We generate a small set of structurally distinct seed programs (fewer than 10), expand them into variants, fingerprint them all, and then add Gaussian noise before fitting centroids. The seeds anchor the tessellation in regions of the space that viable programs actually occupy, while the noise broadens each family's footprint, ensuring the archive can accept innovations that fall between or outside the initial seed families. In practice, this is much more effective than either extreme.
+
 
 
 ## Preliminary Results: ADRS Benchmark
