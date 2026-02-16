@@ -29,11 +29,10 @@ permalink: /levi
 
 LLM-guided evolutionary search has shown strong results across algorithmic discovery and systems research, but current frameworks invest heavily in model scale while underinvesting in the search harness itself. LEVI takes a harness-first approach, improving the selection layer so that models---large and small---are used more effectively. A CVT-MAP-Elites archive with fingerprint-initialized centroids preserves structurally distinct algorithmic families throughout the search, and a stratified model allocation routes cheap models for refinement while reserving larger models for infrequent paradigm shifts. The result is better scores than OpenEvolve, ShinkaEvolve, and GEPA on the ADRS benchmark at 1.5--6.7× lower cost. LEVI will be open-sourced on GitHub soon.
 
-<img src="/results/comparison_plot.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0;">
+<img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
 <p class="figure-caption">Figure 1: Controlled comparison on Transaction Scheduling. Same model (Qwen3-30B-A3B), same budget (750 evaluations), three seeds. LEVI's archive sustains exploration well past the point where baselines converge.</p>
 
----
 
 ## Background and Motivation
 
@@ -47,7 +46,6 @@ We believe this coupling reflects a design assumption more than a fundamental re
 
 LEVI takes a different starting point. Rather than building the harness around the assumption of a strong model, we ask what the search architecture should look like if model calls are expensive and limited. By improving the archive's ability to maintain structurally diverse solutions throughout the search, we reduce the burden on the model---making it possible to get strong results with cheaper models and smaller budgets. The goal is not to eliminate the need for capable models, but to ensure they are used where they matter most, and that researchers without frontier-model budgets can still push the state of the art.
 
----
 
 ## LEVI
 
@@ -86,7 +84,7 @@ The diversity mechanism must address two things: how to represent solutions and 
       <div class="tt-body"></div>
     </div>
 
-    <svg width="880" height="520" viewBox="0 0 880 520" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="LEVI System Overview Architecture Diagram" role="img">
+    <svg width="880" height="440" viewBox="0 0 880 440" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="LEVI System Overview Architecture Diagram" role="img">
       <defs>
         <marker id="levi-arch-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
           <polygon points="0 0.8, 7 3, 0 5.2" fill="var(--levi-arch-arrow-head)"/>
@@ -96,111 +94,114 @@ The diversity mechanism must address two things: how to represent solutions and 
         </symbol>
       </defs>
 
-      <rect x="60" y="20" width="320" height="52" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="220" y="42" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="13" font-weight="600">DSPy Prompt Optimization</text>
-      <text x="220" y="58" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">(One-time)</text>
-      <rect class="levi-arch-hover-zone" data-tip="dspy" x="60" y="20" width="320" height="52" rx="7"/>
+      <!-- Producer Workers -->
+      <rect x="50" y="20" width="340" height="58" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
+      <text x="220" y="44" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">N Producer Workers</text>
+      <text x="220" y="62" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">(LLMs: LiteLLM)</text>
+      <rect class="levi-arch-hover-zone" data-tip="producers" x="50" y="20" width="340" height="58" rx="7"/>
 
-      <line x1="220" y1="72" x2="220" y2="98" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <line x1="220" y1="78" x2="220" y2="114" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="232" y="100" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">Push Code</text>
 
-      <rect x="60" y="100" width="320" height="52" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="220" y="122" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="13" font-weight="600">N Producer Workers</text>
-      <text x="220" y="138" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">(LLMs: LiteLLM)</text>
-      <rect class="levi-arch-hover-zone" data-tip="producers" x="60" y="100" width="320" height="52" rx="7"/>
+      <!-- Code Queue -->
+      <rect x="50" y="116" width="340" height="58" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
+      <text x="220" y="140" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">Code Queue</text>
+      <text x="220" y="158" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">(Asyncio)</text>
+      <rect class="levi-arch-hover-zone" data-tip="queue" x="50" y="116" width="340" height="58" rx="7"/>
 
-      <line x1="220" y1="152" x2="220" y2="196" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
-      <text x="232" y="178" fill="var(--levi-arch-text-tertiary)" font-size="10" font-weight="300">Push Code</text>
+      <line x1="220" y1="174" x2="220" y2="210" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="232" y="196" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">Pull Code</text>
 
-      <rect x="60" y="198" width="320" height="52" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="220" y="220" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="13" font-weight="600">Code Queue</text>
-      <text x="220" y="236" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">(Asyncio)</text>
-      <rect class="levi-arch-hover-zone" data-tip="queue" x="60" y="198" width="320" height="52" rx="7"/>
+      <!-- Consumer Workers -->
+      <rect x="50" y="212" width="340" height="78" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
+      <text x="220" y="238" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">M Consumer Workers</text>
+      <text x="220" y="256" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">(Evaluation in Subprocess)</text>
+      <rect x="110" y="264" width="220" height="20" rx="3" fill="var(--levi-arch-subnode-fill)" stroke="var(--levi-arch-subnode-stroke)" stroke-width="0.7"/>
+      <text x="220" y="278" text-anchor="middle" fill="var(--levi-arch-text-tertiary)" font-size="10" font-weight="300">exec + score_fn, Hard Timeout</text>
+      <rect class="levi-arch-hover-zone" data-tip="consumers" x="50" y="212" width="340" height="78" rx="7"/>
 
-      <line x1="220" y1="250" x2="220" y2="294" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
-      <text x="232" y="276" fill="var(--levi-arch-text-tertiary)" font-size="10" font-weight="300">Pull Code</text>
+      <line x1="220" y1="290" x2="220" y2="336" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
 
-      <rect x="60" y="296" width="320" height="72" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="220" y="318" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="13" font-weight="600">M Consumer Workers</text>
-      <text x="220" y="334" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">(Evaluation in Subprocess)</text>
-      <rect x="120" y="344" width="200" height="18" rx="3" fill="var(--levi-arch-subnode-fill)" stroke="var(--levi-arch-subnode-stroke)" stroke-width="0.7"/>
-      <text x="220" y="357" text-anchor="middle" fill="var(--levi-arch-text-tertiary)" font-size="9" font-weight="300">exec + score_fn, Hard Timeout</text>
-      <rect class="levi-arch-hover-zone" data-tip="consumers" x="60" y="296" width="320" height="72" rx="7"/>
+      <!-- Budget Manager -->
+      <rect x="70" y="338" width="300" height="58" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
+      <text x="220" y="362" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">Budget Manager</text>
+      <text x="220" y="380" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">(Monitors $, #evals, time)</text>
+      <rect class="levi-arch-hover-zone" data-tip="budget" x="70" y="338" width="300" height="58" rx="7"/>
 
-      <line x1="220" y1="368" x2="220" y2="418" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <!-- Connection: Producers → Archive (Sample Parents) -->
+      <line x1="390" y1="49" x2="538" y2="49" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="420" y="41" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">Sample Parents</text>
 
-      <rect x="80" y="420" width="280" height="52" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="220" y="442" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="13" font-weight="600">Budget Manager</text>
-      <text x="220" y="458" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">(Monitors $, #evals, time)</text>
-      <rect class="levi-arch-hover-zone" data-tip="budget" x="80" y="420" width="280" height="52" rx="7"/>
+      <!-- Connection: Consumers → Archive (Update) -->
+      <polyline points="390,245 490,245 490,180 538,180" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)" fill="none"/>
+      <text x="478" y="206" text-anchor="end" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">Update if</text>
+      <text x="478" y="220" text-anchor="end" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">Score &gt; Existing</text>
 
-      <line x1="380" y1="126" x2="548" y2="126" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
-      <text x="420" y="118" fill="var(--levi-arch-text-tertiary)" font-size="10" font-weight="300">Sample Parents</text>
+      <!-- Connection: Budget → PE (STOP) -->
+      <line x1="370" y1="367" x2="538" y2="367" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <text x="392" y="359" fill="var(--levi-arch-text-tertiary)" font-size="11" font-weight="300">STOP signal on exhaustion</text>
 
-      <polyline points="380,320 500,320 500,250 548,250" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)" fill="none"/>
-      <text x="488" y="278" text-anchor="end" fill="var(--levi-arch-text-tertiary)" font-size="10" font-weight="300">Update if</text>
-      <text x="488" y="291" text-anchor="end" fill="var(--levi-arch-text-tertiary)" font-size="10" font-weight="300">Score &gt; Existing</text>
+      <!-- Connection: PE → Archive -->
+      <line x1="690" y1="340" x2="690" y2="310" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
 
-      <line x1="360" y1="446" x2="548" y2="446" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
-      <text x="382" y="438" fill="var(--levi-arch-text-tertiary)" font-size="10" font-weight="300">STOP signal on exhaustion</text>
+      <!-- CVT-MAP-Elites Archive -->
+      <rect x="540" y="10" width="320" height="298" rx="9" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
+      <text x="700" y="38" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">CVT-MAP-Elites Archive</text>
 
-      <line x1="690" y1="420" x2="690" y2="345" stroke="var(--levi-arch-edge)" stroke-width="1.2" marker-end="url(#levi-arch-arr)"/>
+      <g transform="translate(565, 50)">
+        <rect width="270" height="210" rx="5" fill="var(--levi-arch-voronoi-bg)" stroke="var(--levi-arch-subnode-stroke)" stroke-width="0.7"/>
 
-      <rect x="550" y="30" width="300" height="312" rx="9" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="700" y="56" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="13" font-weight="600">CVT-MAP-Elites Archive</text>
+        <polygon points="0,0 70,0 59,53 43,74 0,63" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="70,0 140,0 151,42 119,79 59,53" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="140,0 210,0 216,58 173,74 151,42" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="210,0 270,0 270,63 238,79 216,58" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-      <g transform="translate(575, 66)">
-        <rect width="250" height="200" rx="5" fill="var(--levi-arch-voronoi-bg)" stroke="var(--levi-arch-subnode-stroke)" stroke-width="0.7"/>
+        <polygon points="0,63 43,74 54,126 32,147 0,137" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="43,74 59,53 119,79 130,116 54,126" fill="#f59e0b" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="119,79 151,42 173,74 184,126 130,116" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="173,74 216,58 238,79 270,63 270,137 227,131 184,126" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="0,0 65,0 55,50 40,70 0,60" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="65,0 130,0 140,40 110,75 55,50" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="130,0 195,0 200,55 160,70 140,40" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="195,0 250,0 250,60 220,75 200,55" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="0,137 32,147 54,126 65,168 43,210 0,210" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="54,126 130,116 140,168 65,168" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="130,116 184,126 194,174 140,168" fill="#f59e0b" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="184,126 227,131 270,137 270,210 216,210 194,174" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="0,60 40,70 50,120 30,140 0,130" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="40,70 55,50 110,75 120,110 50,120" fill="#f59e0b" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="110,75 140,40 160,70 170,120 120,110" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="160,70 200,55 220,75 250,60 250,130 210,125 170,120" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="65,168 140,168 130,210 43,210" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <polygon points="140,168 194,174 216,210 130,210" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
 
-        <polygon points="0,130 30,140 50,120 60,160 40,200 0,200" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="50,120 120,110 130,160 60,160" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="120,110 170,120 180,165 130,160" fill="#f59e0b" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="170,120 210,125 250,130 250,200 200,200 180,165" fill="#10b981" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
+        <use href="#levi-arch-star" x="19" y="17" width="18" height="18"/>
+        <use href="#levi-arch-star" x="83" y="19" width="18" height="18"/>
+        <use href="#levi-arch-star" x="162" y="13" width="18" height="18"/>
+        <use href="#levi-arch-star" x="229" y="17" width="18" height="18"/>
+        <use href="#levi-arch-star" x="14" y="89" width="18" height="18"/>
+        <use href="#levi-arch-star" x="77" y="72" width="18" height="18"/>
+        <use href="#levi-arch-star" x="147" y="72" width="18" height="18"/>
+        <use href="#levi-arch-star" x="217" y="87" width="18" height="18"/>
+        <use href="#levi-arch-star" x="19" y="152" width="18" height="18"/>
+        <use href="#levi-arch-star" x="82" y="131" width="18" height="18"/>
+        <use href="#levi-arch-star" x="151" y="135" width="18" height="18"/>
+        <use href="#levi-arch-star" x="217" y="156" width="18" height="18"/>
+        <use href="#levi-arch-star" x="76" y="174" width="18" height="18"/>
+        <use href="#levi-arch-star" x="160" y="172" width="18" height="18"/>
 
-        <polygon points="60,160 130,160 120,200 40,200" fill="#6366f1" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-        <polygon points="130,160 180,165 200,200 120,200" fill="#ef4444" stroke="var(--levi-arch-voronoi-bg)" stroke-width="2"/>
-
-        <use href="#levi-arch-star" x="18" y="16" width="18" height="18"/>
-        <use href="#levi-arch-star" x="77" y="18" width="18" height="18"/>
-        <use href="#levi-arch-star" x="150" y="12" width="18" height="18"/>
-        <use href="#levi-arch-star" x="212" y="16" width="18" height="18"/>
-        <use href="#levi-arch-star" x="13" y="84" width="18" height="18"/>
-        <use href="#levi-arch-star" x="71" y="68" width="18" height="18"/>
-        <use href="#levi-arch-star" x="136" y="68" width="18" height="18"/>
-        <use href="#levi-arch-star" x="201" y="82" width="18" height="18"/>
-        <use href="#levi-arch-star" x="18" y="144" width="18" height="18"/>
-        <use href="#levi-arch-star" x="76" y="124" width="18" height="18"/>
-        <use href="#levi-arch-star" x="140" y="128" width="18" height="18"/>
-        <use href="#levi-arch-star" x="201" y="148" width="18" height="18"/>
-        <use href="#levi-arch-star" x="70" y="164" width="18" height="18"/>
-        <use href="#levi-arch-star" x="148" y="162" width="18" height="18"/>
-
-        <text x="24" y="62" fill="var(--levi-arch-text-cell)" font-size="10" font-weight="400">c0</text>
-        <text x="82" y="57" fill="var(--levi-arch-text-cell)" font-size="10" font-weight="400">c1</text>
-        <text x="150" y="57" fill="var(--levi-arch-text-cell)" font-size="10" font-weight="400">c2</text>
-        <text x="196" y="48" fill="var(--levi-arch-text-cell-muted)" font-size="11" font-weight="400">···</text>
-        <text x="216" y="62" fill="var(--levi-arch-text-cell)" font-size="10" font-weight="400">c7</text>
+        <text x="26" y="65" fill="var(--levi-arch-text-cell)" font-size="11" font-weight="400">c0</text>
+        <text x="89" y="60" fill="var(--levi-arch-text-cell)" font-size="11" font-weight="400">c1</text>
+        <text x="162" y="60" fill="var(--levi-arch-text-cell)" font-size="11" font-weight="400">c2</text>
+        <text x="212" y="51" fill="var(--levi-arch-text-cell-muted)" font-size="12" font-weight="400">···</text>
+        <text x="234" y="65" fill="var(--levi-arch-text-cell)" font-size="11" font-weight="400">c7</text>
       </g>
 
-      <text x="700" y="286" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">Grid of Behavioral Niches</text>
-      <text x="700" y="300" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">(K-means Centroids)</text>
+      <text x="700" y="280" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">Grid of Behavioral Niches</text>
+      <text x="700" y="295" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">(K-means Centroids)</text>
 
-      <rect class="levi-arch-hover-zone" data-tip="archive" x="550" y="30" width="300" height="312" rx="9"/>
+      <rect class="levi-arch-hover-zone" data-tip="archive" x="540" y="10" width="320" height="298" rx="9"/>
 
-      <rect x="550" y="410" width="280" height="72" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
-      <text x="690" y="438" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="13" font-weight="600">Punctuated Equilibrium</text>
-      <text x="690" y="454" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">(Every K evals:</text>
-      <text x="690" y="468" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="10" font-weight="300">Paradigm Shifts &amp; Variants)</text>
-      <rect class="levi-arch-hover-zone" data-tip="pe" x="550" y="410" width="280" height="72" rx="7"/>
+      <!-- Punctuated Equilibrium -->
+      <rect x="540" y="330" width="300" height="78" rx="7" fill="var(--levi-arch-node-fill)" stroke="var(--levi-arch-node-stroke)" stroke-width="1"/>
+      <text x="690" y="358" text-anchor="middle" fill="var(--levi-arch-text-primary)" font-size="14" font-weight="600">Punctuated Equilibrium</text>
+      <text x="690" y="376" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">(Every K evals:</text>
+      <text x="690" y="392" text-anchor="middle" fill="var(--levi-arch-text-secondary)" font-size="11" font-weight="300">Paradigm Shifts &amp; Variants)</text>
+      <rect class="levi-arch-hover-zone" data-tip="pe" x="540" y="330" width="300" height="78" rx="7"/>
     </svg>
   </div>
 </div>
@@ -211,10 +212,6 @@ The diversity mechanism must address two things: how to represent solutions and 
   if (!root) return;
 
   const descriptions = {
-    dspy: {
-      title: "DSPy Prompt Optimization (One-time)",
-      body: "A one-time bootstrap step using DSPy's MIPROv2 optimizer to automatically tune LLM prompts. This removes prompt sensitivity as a variable, making results more robust when switching models or problems."
-    },
     producers: {
       title: "N Producer Workers (LLMs: LiteLLM)",
       body: "N concurrent workers that sample parent solutions from the archive and call LLMs (via LiteLLM) to generate new or mutated code. Running multiple producers in parallel maximizes throughput and exploration."
@@ -283,7 +280,6 @@ The diversity mechanism must address two things: how to represent solutions and 
 
 <p class="figure-caption">Figure 2: LEVI system architecture. Hover over each component for a detailed description.</p>
 
----
 
 ## Preliminary Results: ADRS Benchmark
 
@@ -655,7 +651,7 @@ LEVI achieves the highest score on every problem where improvement is possible, 
 
 An additional observation: no single baseline is consistently second-best across problems, reflecting how the different diversity mechanisms each framework employs interact unevenly with different problem structures. LEVI's consistent first-place performance suggests that CVT-MAP-Elites with fingerprint-initialized centroids provides a more robust diversity mechanism regardless of problem characteristics.
 
-<img src="/results/best_score_progression.png" alt="LEVI best score progression over time across problems" style="max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0;">
+<img src="/results/best_score_progression.png" alt="LEVI best score progression over time across problems" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
 <p class="figure-caption">Figure 4: LEVI best score progression over generations. The archive sustains steady improvement throughout the search rather than plateauing early.</p>
 
@@ -813,20 +809,18 @@ The main results compare frameworks that differ simultaneously in model choice, 
 
 **Transaction Scheduling** is a variant of an NP-hard ordering problem where multiple algorithmic families (greedy, simulated annealing, genetic) are viable but performance is measured on a single instance, giving Pareto-based diversity no trade-off to exploit. LEVI reaches a score of 62 within the first 100 evaluations, a level neither baseline achieves at any point. Final scores: LEVI 64.9, OpenEvolve 59.9, GEPA 54.4. Both baselines plateau sharply, consistent with early convergence onto a single algorithmic family; LEVI's curve continues rising past evaluation 500.
 
-<img src="/results/comparison_plot.png" alt="Transaction Scheduling controlled comparison plot" style="max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0;">
+<img src="/results/txn_scheduling.png" alt="Transaction Scheduling controlled comparison plot" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
 <p class="figure-caption">Figure 5: Controlled comparison on Transaction Scheduling. Same model, same budget. LEVI reaches 62 within 100 evaluations---a level neither baseline achieves at any point during the run.</p>
 
 **Can't Be Late** is scored across 1,080 simulations that give Pareto-based approaches a richer signal. The final-score gap narrows (LEVI 44.9, OpenEvolve 43.2, GEPA 32.6), but the efficiency gap widens dramatically. LEVI reaches near-peak performance by roughly evaluation 50, while OpenEvolve requires over 600 evaluations to approach the same level---a roughly 12× advantage in sample efficiency.
 
-<img src="/results/cbl_plot3.png" alt="Can't Be Late controlled comparison plot" style="max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0;">
+<img src="/results/cant_be_late.png" alt="Can't Be Late controlled comparison plot" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
 <p class="figure-caption">Figure 6: Controlled comparison on Can't Be Late. LEVI reaches near-peak by evaluation 50; OpenEvolve requires 600+ evaluations to approach the same level.</p>
 
 These controlled results confirm that the performance gains are attributable to the search architecture, not to model choice or budget. A 30B model under LEVI's search regime matches or exceeds what the same model achieves under alternative selection mechanisms.
 
 **More benchmarks and domains are in progress---ADRS is a first validation, not the full story.**
-
----
 
 LEVI will be open-sourced on GitHub soon. Point it at a scoring function and a seed program and it runs until the budget is spent.
