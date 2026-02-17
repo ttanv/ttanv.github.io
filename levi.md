@@ -23,6 +23,48 @@ permalink: /levi
   margin-bottom: 1.5rem;
   opacity: 0.75;
 }
+.sidenote-ref {
+  font-size: 0.75em;
+  vertical-align: super;
+  line-height: 0;
+  color: var(--text-secondary);
+  cursor: default;
+}
+.sidenote {
+  float: right;
+  clear: right;
+  width: 200px;
+  margin-right: -240px;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.sidenote .sn-num {
+  font-size: 0.75em;
+  vertical-align: super;
+  line-height: 0;
+  margin-right: 2px;
+}
+.sidenote a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-size: inherit !important;
+}
+.sidenote a:hover {
+  color: var(--heading-color);
+}
+@media screen and (max-width: 1100px) {
+  .sidenote {
+    float: none;
+    width: 100%;
+    margin: 0.5rem 0 1rem 0;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border-color);
+  }
+}
 </style>
 
 ## TLDR
@@ -40,7 +82,10 @@ Existing LLM-guided evolutionary frameworks have weak diversity mechanisms that 
 
 The idea of pairing large language models with evolutionary search over programs was introduced by FunSearch, which used an island-based method to discover solutions to problems that are easy to verify but hard to solve. AlphaEvolve scaled the paradigm to stronger LLMs and larger codebases, and subsequent work extended it to mathematical constructions, heuristic design, prompt optimization, and systems research. The core loop is simple: an LLM proposes candidate programs, an evaluator scores them, and a selection mechanism guides the population toward better solutions.
 
-Several open-source frameworks now implement this loop---OpenEvolve, ShinkaEvolve, and GEPA being the most widely used. These have demonstrated strong results, but they share a common characteristic: strong performance is tightly coupled with large budgets and frontier-scale models. Most published runs cost \$15--30 per problem and assume access to models like GPT-5 or Gemini-3, making the paradigm expensive to use and difficult to iterate on.
+Several open-source frameworks now implement this loop---OpenEvolve, ShinkaEvolve, and GEPA being the most widely used. These have demonstrated strong results, but they share a common characteristic: strong performance is tightly coupled with large budgets and frontier-scale models. Most published runs assume access to frontier models like Opus, GPT, or Gemini Pro,<span class="sidenote-ref">1,2</span> making the paradigm expensive to use and difficult to iterate on.
+
+<span class="sidenote"><span class="sn-num">1</span> <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a> — uses Claude Opus for mutations.</span>
+<span class="sidenote"><span class="sn-num">2</span> <a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025) — relies on frontier-scale models throughout the search.</span>
 
 We believe this coupling reflects a design assumption more than a fundamental requirement. Existing frameworks were built with frontier models as the default, and their search architectures reflect this: when diversity stalls, the response tends to be additional layers of mechanism---islands, embedding-based novelty filters, LLM judges---each patching over convergence that still occurs, rather than preventing it at the archive level. GEPA takes a cleaner approach through per-instance Pareto fronts, but its diversity signal weakens when performance across instances is highly correlated. The result across the board is that capable models end up doing double duty---both proposing new solutions and compensating for a selection layer that lets the population narrow too quickly.
 
@@ -802,7 +847,9 @@ The cost reduction is not the point---it is evidence that the harness-first appr
 
 <p class="section-desc">Same model, same budget, three seeds---isolating the search architecture's contribution.</p>
 
-The main results compare frameworks that differ simultaneously in model choice, budget, and architecture. To isolate the contribution of the search architecture, we run LEVI, OpenEvolve, and GEPA under identical conditions: a single locally-served Qwen3-30B-A3B model, 750 successful evaluations, and three random seeds on two representative problems.
+The main results compare frameworks that differ simultaneously in model choice, budget, and architecture. To isolate the contribution of the search architecture, we run LEVI, OpenEvolve, and GEPA under identical conditions: a single locally-served Qwen3-30B-A3B model, 750 successful evaluations,<span class="sidenote-ref">3</span> and three random seeds on two representative problems.
+
+<span class="sidenote"><span class="sn-num">3</span> OpenEvolve required reducing parent count from 5 to 2 for the smaller model and still produced many failures. We report successful evaluations rather than total to give OpenEvolve a fair comparison.</span>
 
 **Transaction Scheduling** is a variant of an NP-hard ordering problem where multiple algorithmic families (greedy, simulated annealing, genetic) are viable but performance is measured on a single instance, giving Pareto-based diversity no trade-off to exploit. LEVI reaches a score of 62 within the first 100 evaluations, a level neither baseline achieves at any point. Final scores: LEVI 64.9, OpenEvolve 59.9, GEPA 54.4. Both baselines plateau sharply, consistent with early convergence onto a single algorithmic family; LEVI's curve continues rising past evaluation 500.
 
