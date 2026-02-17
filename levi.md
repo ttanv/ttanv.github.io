@@ -1,7 +1,7 @@
 ---
 layout: blog
 title: "LEVI: Better LLM Optimization for the Price of a Cup of Coffee"
-subtitle: "An open-source evolutionary framework for algorithmic discovery."
+subtitle: "A harness-first framework for LLM-guided evolutionary search."
 date: 2026-02-01
 permalink: /levi
 ---
@@ -27,7 +27,7 @@ permalink: /levi
 
 ## TLDR
 
-LLM-guided evolutionary search has shown strong results across algorithmic discovery and systems research, but current frameworks invest heavily in model scale while underinvesting in the search harness itself. LEVI takes a harness-first approach, improving the selection layer so that models---large and small---are used more effectively. A CVT-MAP-Elites archive with fingerprint-initialized centroids preserves structurally distinct algorithmic families throughout the search, and a stratified model allocation routes cheap models for refinement while reserving larger models for infrequent paradigm shifts. The result is better scores than OpenEvolve, ShinkaEvolve, and GEPA on the ADRS benchmark at 1.5--6.7× lower cost. LEVI will be open-sourced on GitHub soon.
+Existing LLM-guided evolutionary frameworks have weak diversity mechanisms that cause early convergence, then compensate by throwing expensive frontier models at the problem. LEVI takes a harness-first approach: fix the search architecture so the archive preserves structurally diverse solutions throughout the run, and strong performance follows even with cheap models. The result is better scores than OpenEvolve, ShinkaEvolve, and GEPA on the ADRS benchmark at 1.5--6.7× lower cost. LEVI will be open-sourced on GitHub soon.
 
 <img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
