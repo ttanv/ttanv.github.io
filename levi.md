@@ -67,9 +67,29 @@ permalink: /levi
 }
 </style>
 
-## TLDR
+## In Plain English
 
-Existing LLM-guided evolutionary frameworks have weak diversity mechanisms that cause early convergence, then compensate by throwing expensive frontier models at the problem. LEVI takes a harness-first approach: fix the search architecture so the archive preserves structurally diverse solutions throughout the run, and strong performance follows even with cheap models. The result is better scores than OpenEvolve, ShinkaEvolve, and GEPA on the ADRS benchmark at 1.5--6.7× lower cost. LEVI will be open-sourced on GitHub soon.
+I tried writing an elaborate technical blog about LEVI. As much as I tried, it's now over 2000 words and contains technical terms no one outside of the niche would understand. I think I may have ended up using my writing-a-paper muscles to write a blog. So let's give this another try. This time I'll write closer to my own words, and completely omit technical jargon I deem unworthy. The full technical blog can still be found [below](#background-and-motivation), but I want this to be the canonical intro.
+
+The larger problem I'm trying to solve is making LLM-guided optimization (think AlphaEvolve, GEPA, ShinkaEvolve) much more accessible and affordable, without sacrificing any of the results. I find this to be a promising and exciting direction, yet the average researcher can't use these methods without burning through large budgets. I want to make this thing I'm excited about more accessible. I also think the niche is new enough for there to be large efficiency gains we're still missing.
+
+The way I think we can get those efficiency gains while maintaining or improving raw results is simple: invest in the harness instead of the model. Too many frameworks assume access to large models, and build their harnesses around them. This should not be the default. In fact, the original FunSearch paper reported being unable to benefit from larger models, and only with AlphaEvolve did they succeed. Starting from harnesses that benefit from smaller models should be the default, not seen as just some "efficiency gains." And no, improving the harness does not mean adding complexity. The two are not equivalent.
+
+As a result, I present LEVI (LLM Evolution through Voronoi Initialization). LEVI scores the highest across all competing frameworks on the ADRS benchmark, with a 1.5--6.5x decrease in cost. It is built on two simple ideas:
+
+**1) Smarter allocation of LLMs.** Allocate larger, more capable LLMs for rare but creative paradigm shifts. Allocate smaller, cheaper LLMs for the majority of the mutations. Larger models can suggest creative, working code that has a higher chance of moving the evolutionary process forward. But they are much more expensive, and for most mutations, completely unnecessary. It might take a smaller model 5 times the attempts to get the same results, but a Qwen 30B is 40x cheaper than the latest GPT 5.4. The economics make this a completely reasonable trade-off.
+
+This is further supported by the evolutionary process being completely blind — a part often forgotten when considering model choice. The SOTA results, the completely new mathematical constructions, come out of blind mutations over a long timeline. Consider the capset result from the FunSearch paper: they used a ~30B model and it took around a *million* mutations. They didn't reach that construction because raw intelligence kept increasing — the model was doing blind, unguided changes that compounded over time into something completely new. Given this, I think larger models should strictly give high-level guidance on promising areas of search, so smaller models don't waste time on unpromising local minima.
+
+**2) Better diversity maintenance.** Since we're relying on smaller models' quantity over larger models' quality, we'll run into more minor changes that may have no effect. Stupid changes are fine — they often lead to the most interesting ideas. But we can't pollute our archive with a single strategy, lest we get stuck in a local minimum. We want to maintain a diverse archive of different strategies, any of which may yield the next best score.
+
+LEVI's diversity mechanism takes the best of both AlphaEvolve's MAP-Elites approach (maintain solutions along a grid of diversity dimensions) and GEPA's Pareto frontier (different algorithms have different trade-offs across problem instances). We use both structural behaviors (number of math operators, cyclomatic complexity) and functional behaviors (Pareto-like trade-offs) as dimensions. To initialize, we run a phase that sequentially creates algorithmically diverse pieces of code to set our bounds. This makes diversity much more powerful while remaining cheap and simple.
+
+**Case study — ADRS:** Best scores across the board, with 1.5--6.7x cheaper budgets.
+
+**Case study — Circle Packing:** Beats AlphaEvolve's best score while using Qwen 30B for 95%+ of the mutations.
+
+Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
 
 <img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
