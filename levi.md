@@ -1,10 +1,12 @@
 ---
 layout: blog
 title: "LEVI: Better LLM Optimization for the Price of a Cup of Coffee"
-subtitle: "A harness-first framework for LLM-guided evolutionary search."
-date: 2026-02-01
+subtitle: "A harness-first framework for LLM-guided evolutionary search. Beats OpenEvolve/GEPA at 1/6th the cost. Beats AlphaEvolve's Circle Packing while mostly using a 30B model."
+date: 2026-03-01
 permalink: /levi
 ---
+
+Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
 
 <style>
 .figure-caption {
@@ -76,42 +78,6 @@ The larger problem I'm trying to solve is making LLM-guided optimization (think 
 The way I think we can get those efficiency gains while maintaining or improving raw results is simple: invest in the harness instead of the model. Too many frameworks assume access to large models, and build their harnesses around them. This should not be the default. In fact, the original FunSearch paper reported being unable to benefit from larger models, and only with AlphaEvolve did they succeed. Starting from harnesses that benefit from smaller models should be the default, not seen as just some "efficiency gains." And no, improving the harness does not mean adding complexity. The two are not equivalent.
 
 As a result, I present LEVI (LLM Evolution through Voronoi Initialization). LEVI scores the highest across all competing frameworks on the ADRS benchmark, with a 1.5--6.5x decrease in cost. It is built on two simple ideas:
-
-**1) Smarter allocation of LLMs.** Allocate larger, more capable LLMs for rare but creative paradigm shifts. Allocate smaller, cheaper LLMs for the majority of the mutations. Larger models can suggest creative, working code that has a higher chance of moving the evolutionary process forward. But they are much more expensive, and for most mutations, completely unnecessary. It might take a smaller model 5 times the attempts to get the same results, but a Qwen 30B is 40x cheaper than the latest GPT 5.4. The economics make this a completely reasonable trade-off.
-
-This is further supported by the evolutionary process being completely blind — a part often forgotten when considering model choice. The SOTA results, the completely new mathematical constructions, come out of blind mutations over a long timeline. Consider the capset result from the FunSearch paper: they used a ~30B model and it took around a *million* mutations. They didn't reach that construction because raw intelligence kept increasing — the model was doing blind, unguided changes that compounded over time into something completely new. Given this, I think larger models should strictly give high-level guidance on promising areas of search, so smaller models don't waste time on unpromising local minima.
-
-**2) Better diversity maintenance.** Since we're relying on smaller models' quantity over larger models' quality, we'll run into more minor changes that may have no effect. Stupid changes are fine — they often lead to the most interesting ideas. But we can't pollute our archive with a single strategy, lest we get stuck in a local minimum. We want to maintain a diverse archive of different strategies, any of which may yield the next best score.
-
-LEVI's diversity mechanism takes the best of both AlphaEvolve's MAP-Elites approach (maintain solutions along a grid of diversity dimensions) and GEPA's Pareto frontier (different algorithms have different trade-offs across problem instances). We use both structural behaviors (number of math operators, cyclomatic complexity) and functional behaviors (Pareto-like trade-offs) as dimensions. To initialize, we run a phase that sequentially creates algorithmically diverse pieces of code to set our bounds. This makes diversity much more powerful while remaining cheap and simple.
-
-**Case study — ADRS:** Best scores across the board, with 1.5--6.7x cheaper budgets.
-
-**Case study — Circle Packing:** Beats AlphaEvolve's best score while using Qwen 30B for 95%+ of the mutations.
-
-Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
-
-<img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;margin:1.5rem 0;">
-
-<p class="figure-caption">Figure 1: Controlled comparison on Transaction Scheduling. Same model (Qwen3-30B-A3B), same budget (750 evaluations), three seeds. LEVI's archive sustains exploration well past the point where baselines converge.</p>
-
-
-## Background and Motivation
-
-<p class="section-desc">Why existing frameworks couple strong performance with large budgets, and why that coupling is a design choice rather than a fundamental requirement.</p>
-
-The idea of pairing large language models with evolutionary search over programs was introduced by FunSearch, which used an island-based method to discover solutions to problems that are easy to verify but hard to solve. AlphaEvolve scaled the paradigm to stronger LLMs and larger codebases, and subsequent work extended it to mathematical constructions, heuristic design, prompt optimization, and systems research. The core loop is simple: an LLM proposes candidate programs, an evaluator scores them, and a selection mechanism guides the population toward better solutions.
-
-Several open-source frameworks now implement this loop: OpenEvolve, ShinkaEvolve, and GEPA being the most widely used. These have demonstrated strong results, but they share a common characteristic: strong performance is tightly coupled with large budgets and frontier-scale models. Most published runs assume access to frontier models like Opus, GPT, or Gemini Pro,<span class="sidenote-ref">1,2</span><span class="sidenote"><span class="sn-num">1</span> <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a>: uses Claude Opus for mutations.</span><span class="sidenote"><span class="sn-num">2</span> <a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025): relies on frontier-scale models throughout the search.</span> making the paradigm expensive to use and difficult to iterate on.
-
-We believe this coupling reflects a design assumption more than a fundamental requirement. Existing frameworks were built with frontier models as the default, and their search architectures reflect this: when diversity stalls, the response tends to be additional layers of mechanism (islands, embedding-based novelty filters, LLM judges), each patching over convergence that still occurs, rather than preventing it at the archive level. GEPA takes a cleaner approach through per-instance Pareto fronts, but its diversity signal weakens when performance across instances is highly correlated. The result across the board is that capable models end up doing double duty: both proposing new solutions and compensating for a selection layer that lets the population narrow too quickly.
-
-LEVI takes a different starting point. Rather than building the harness around the assumption of a strong model, we ask what the search architecture should look like if model calls are expensive and limited. By improving the archive's ability to maintain structurally diverse solutions throughout the search, we reduce the burden on the model, making it possible to get strong results with cheaper models and smaller budgets. The goal is not to eliminate the need for capable models, but to ensure they are used where they matter most, and that researchers without frontier-model budgets can still push the state of the art.
-
-
-## LEVI
-
-<p class="section-desc">LEVI is built on two core ideas: <strong>stratified model allocation</strong> and <strong>improved diversity maintenance</strong>. While explained separately, they are best understood as extensions of each other. The archive provides the structure that makes principled allocation possible, and principled allocation is what makes a diversity-preserving archive practical under tight budgets.</p>
 
 <div class="diagram">
   <div class="levi-arch-diagram" id="levi-arch-diagram">
@@ -316,6 +282,49 @@ LEVI takes a different starting point. Rather than building the harness around t
 
 <p class="figure-caption">Hover over each component for a detailed description.</p>
 
+**1) Smarter allocation of LLMs.** Allocate larger, more capable LLMs for rare but creative paradigm shifts. Allocate smaller, cheaper LLMs for the majority of the mutations. Larger models can suggest creative, working code that has a higher chance of moving the evolutionary process forward. But they are much more expensive, and for most mutations, completely unnecessary. It might take a smaller model 5 times the attempts to get the same results, but a Qwen 30B is 40x cheaper than the latest GPT 5.4. The economics make this a completely reasonable trade-off.
+
+This is further supported by the evolutionary process being completely blind — a part often forgotten when considering model choice. The SOTA results, the completely new mathematical constructions, come out of blind mutations over a long timeline. Consider the capset result from the FunSearch paper: they used a ~30B model and it took around a *million* mutations. They didn't reach that construction because raw intelligence kept increasing — the model was doing blind, unguided changes that compounded over time into something completely new. Given this, I think larger models should strictly give high-level guidance on promising areas of search, so smaller models don't waste time on unpromising local minima.
+
+**2) Better diversity maintenance.** Since we're relying on smaller models' quantity over larger models' quality, we'll run into more minor changes that may have no effect. Stupid changes are fine — they often lead to the most interesting ideas. But we can't pollute our archive with a single strategy, lest we get stuck in a local minimum. We want to maintain a diverse archive of different strategies, any of which may yield the next best score.
+
+LEVI's diversity mechanism takes the best of both AlphaEvolve's MAP-Elites approach (maintain solutions along a grid of diversity dimensions) and GEPA's Pareto frontier (different algorithms have different trade-offs across problem instances). We use both structural behaviors (number of math operators, cyclomatic complexity) and functional behaviors (Pareto-like trade-offs) as dimensions. To initialize, we run a phase that sequentially creates algorithmically diverse pieces of code to set our bounds. This makes diversity much more powerful while remaining cheap and simple.
+
+**Case study — ADRS:** Best scores across the board, with 1.5--6.7x cheaper budgets.
+
+| Problem | LEVI | Best Competitor | Cost Savings |
+|---------|------|-----------------|--------------|
+| Spot Single-Reg | 51.7 | GEPA 51.4 | 6.7x cheaper |
+| Spot Multi-Reg | 72.4 | OpenEvolve 66.7 | 5.6x cheaper |
+| LLM-SQL | 78.3 | OpenEvolve 72.5 | 4.4x cheaper |
+| Cloudcast | 100.0 | GEPA 96.6 | 3.3x cheaper |
+| Prism | 87.4 | Tied | 3.3x cheaper |
+| EPLB | 74.6 | GEPA 70.2 | 3.3x cheaper |
+| Txn Scheduling | 71.1 | OpenEvolve 70.0 | 1.5x cheaper |
+
+**Case study — Circle Packing:** Beats AlphaEvolve's best score while using Qwen 30B for 95%+ of the mutations.
+
+<img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;margin:1.5rem 0;">
+
+<p class="figure-caption">Figure 1: Controlled comparison on Transaction Scheduling. Same model (Qwen3-30B-A3B), same budget (750 evaluations), three seeds. LEVI's archive sustains exploration well past the point where baselines converge.</p>
+
+
+## Background and Motivation
+
+<p class="section-desc">Why existing frameworks couple strong performance with large budgets, and why that coupling is a design choice rather than a fundamental requirement.</p>
+
+The idea of pairing large language models with evolutionary search over programs was introduced by FunSearch, which used an island-based method to discover solutions to problems that are easy to verify but hard to solve. AlphaEvolve scaled the paradigm to stronger LLMs and larger codebases, and subsequent work extended it to mathematical constructions, heuristic design, prompt optimization, and systems research. The core loop is simple: an LLM proposes candidate programs, an evaluator scores them, and a selection mechanism guides the population toward better solutions.
+
+Several open-source frameworks now implement this loop: OpenEvolve, ShinkaEvolve, and GEPA being the most widely used. These have demonstrated strong results, but they share a common characteristic: strong performance is tightly coupled with large budgets and frontier-scale models. Most published runs assume access to frontier models like Opus, GPT, or Gemini Pro,<span class="sidenote-ref">1,2</span><span class="sidenote"><span class="sn-num">1</span> <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a>: uses Claude Opus for mutations.</span><span class="sidenote"><span class="sn-num">2</span> <a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025): relies on frontier-scale models throughout the search.</span> making the paradigm expensive to use and difficult to iterate on.
+
+We believe this coupling reflects a design assumption more than a fundamental requirement. Existing frameworks were built with frontier models as the default, and their search architectures reflect this: when diversity stalls, the response tends to be additional layers of mechanism (islands, embedding-based novelty filters, LLM judges), each patching over convergence that still occurs, rather than preventing it at the archive level. GEPA takes a cleaner approach through per-instance Pareto fronts, but its diversity signal weakens when performance across instances is highly correlated. The result across the board is that capable models end up doing double duty: both proposing new solutions and compensating for a selection layer that lets the population narrow too quickly.
+
+LEVI takes a different starting point. Rather than building the harness around the assumption of a strong model, we ask what the search architecture should look like if model calls are expensive and limited. By improving the archive's ability to maintain structurally diverse solutions throughout the search, we reduce the burden on the model, making it possible to get strong results with cheaper models and smaller budgets. The goal is not to eliminate the need for capable models, but to ensure they are used where they matter most, and that researchers without frontier-model budgets can still push the state of the art.
+
+
+## LEVI
+
+<p class="section-desc">LEVI is built on two core ideas: <strong>stratified model allocation</strong> and <strong>improved diversity maintenance</strong>. While explained separately, they are best understood as extensions of each other. The archive provides the structure that makes principled allocation possible, and principled allocation is what makes a diversity-preserving archive practical under tight budgets.</p>
 ### Stratified Model Allocation
 
 <p class="section-desc">Match model capacity to task demand: cheap models for refinement, expensive models for paradigm shifts.</p>
