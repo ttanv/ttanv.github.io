@@ -8,7 +8,11 @@ permalink: /levi
 
 Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
 
+<img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:600px;width:100%;height:auto;margin:1rem 0;">
+<p class="figure-caption">Controlled comparison on Transaction Scheduling. Same model (Qwen3-30B-A3B), same budget (750 evaluations), three seeds.</p>
+
 <style>
+
 .figure-caption {
   color: var(--text-secondary);
   font-size: 14px;
@@ -290,7 +294,7 @@ This is further supported by the evolutionary process being completely blind —
 
 LEVI's diversity mechanism takes the best of both AlphaEvolve's MAP-Elites approach (maintain solutions along a grid of diversity dimensions) and GEPA's Pareto frontier (different algorithms have different trade-offs across problem instances). We use both structural behaviors (number of math operators, cyclomatic complexity) and functional behaviors (Pareto-like trade-offs) as dimensions. To initialize, we run a phase that sequentially creates algorithmically diverse pieces of code to set our bounds. This makes diversity much more powerful while remaining cheap and simple.
 
-**Case study — ADRS:** Best scores across the board, with 1.5--6.7x cheaper budgets.
+Together, these two ideas let LEVI match or beat every competing framework on the [ADRS benchmark](https://ucbskyadrs.github.io/) while spending a fraction of the budget:
 
 | Problem | LEVI | Best Competitor | Cost Savings |
 |---------|------|-----------------|--------------|
@@ -301,13 +305,6 @@ LEVI's diversity mechanism takes the best of both AlphaEvolve's MAP-Elites appro
 | Prism | 87.4 | Tied | 3.3x cheaper |
 | EPLB | 74.6 | GEPA 70.2 | 3.3x cheaper |
 | Txn Scheduling | 71.1 | OpenEvolve 70.0 | 1.5x cheaper |
-
-**Case study — Circle Packing:** Beats AlphaEvolve's best score while using Qwen 30B for 95%+ of the mutations.
-
-<img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:100%;height:auto;margin:1.5rem 0;">
-
-<p class="figure-caption">Figure 1: Controlled comparison on Transaction Scheduling. Same model (Qwen3-30B-A3B), same budget (750 evaluations), three seeds. LEVI's archive sustains exploration well past the point where baselines converge.</p>
-
 
 ## Background and Motivation
 
