@@ -26,56 +26,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
-    .theme-toggle {
-      position: fixed;
-      top: 10px;
-      right: 20px;
-      background: transparent;
-      border: none;
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      transition: opacity 0.2s ease;
-      z-index: 1000;
-      color: var(--text-secondary);
-    }
-    .theme-toggle:hover {
-      opacity: 0.7;
-    }
-    .sun-icon, .moon-icon {
-      position: absolute;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    [data-theme="dark"] .sun-icon,
-    .moon-icon {
-      opacity: 1;
-      transform: rotate(0deg);
-    }
-    [data-theme="dark"] .moon-icon,
-    .sun-icon {
-      opacity: 0;
-      transform: rotate(-90deg);
-    }
-    [data-theme="dark"] .sun-icon {
-      opacity: 1;
-      transform: rotate(0deg);
-    }
-    [data-theme="dark"] .moon-icon {
-      opacity: 0;
-    }
-    @media (prefers-color-scheme: dark) {
-      .sun-icon { opacity: 1; transform: rotate(0deg); }
-      .moon-icon { opacity: 0; transform: rotate(-90deg); }
-    }
-    @media (prefers-color-scheme: light) {
-      .sun-icon { opacity: 0; transform: rotate(90deg); }
-      .moon-icon { opacity: 1; transform: rotate(0deg); }
-    }
-
     .blog-content {
       max-width: 720px;
       margin: 0 auto;
@@ -179,6 +129,104 @@
     .blog-back:hover {
       color: var(--heading-color);
     }
+
+    /* Accent colors for blog */
+    .blog-content a {
+      color: var(--blog-link);
+      text-decoration-color: var(--blog-link-underline);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1px;
+    }
+    .blog-content a:hover {
+      color: var(--blog-link-hover);
+      text-decoration-color: var(--blog-link-hover);
+    }
+
+    /* Table of contents — sticky left sidebar on wide screens */
+    .blog-toc {
+      display: none;
+    }
+    .blog-toc ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .blog-toc ul ul {
+      padding-left: 0.85rem;
+    }
+    .blog-toc li {
+      margin: 0.2rem 0;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .blog-toc > ul > li {
+      margin: 0.35rem 0;
+    }
+    .blog-toc a {
+      text-decoration: none !important;
+      color: var(--text-secondary) !important;
+      transition: color 0.15s ease;
+    }
+    .blog-toc a:hover {
+      color: var(--heading-color) !important;
+    }
+    @media (min-width: 1200px) {
+      .blog-toc {
+        display: block;
+        position: fixed;
+        top: 90px;
+        left: calc(50vw - 580px);
+        width: 210px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+    }
+
+    /* Callout boxes */
+    .callout {
+      margin: 1.5rem 0;
+      padding: 1rem 1.25rem;
+      border-left: 3px solid var(--blog-accent);
+      background: var(--blog-callout-bg);
+      border-radius: 0 8px 8px 0;
+    }
+    .callout p {
+      margin: 0.4rem 0;
+    }
+    .callout p:first-child {
+      margin-top: 0;
+    }
+    .callout p:last-child {
+      margin-bottom: 0;
+    }
+    .callout-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--blog-accent);
+      margin-bottom: 0.4rem;
+    }
+
+    /* Key point inline highlight */
+    .key-point {
+      color: var(--blog-accent);
+      font-weight: 600;
+    }
+
+    /* Section summary one-liners */
+    .section-tldr {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-style: italic;
+      border-left: 2px solid var(--border-color);
+      padding-left: 0.75rem;
+      margin: -0.25rem 0 1.5rem 0;
+    }
+
     @media screen and (max-width: 768px) {
       .blog-content {
         padding: 24px 20px;
@@ -197,40 +245,6 @@
       <a href="/#teaching">Teaching</a>
     </div>
   </nav>
-
-  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
-    <span class="sun-icon">&#9728;</span>
-    <span class="moon-icon">&#9790;</span>
-  </button>
-
-  <script>
-    function toggleTheme() {
-      const html = document.documentElement;
-      const currentTheme = html.getAttribute('data-theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-      let newTheme;
-      if (currentTheme === 'dark') {
-        newTheme = 'light';
-      } else if (currentTheme === 'light') {
-        newTheme = 'dark';
-      } else {
-        newTheme = prefersDark ? 'light' : 'dark';
-      }
-
-      html.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-    }
-
-    (function() {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
-    })();
-  </script>
 
   <div class="blog-content">
     <a class="blog-back" href="/">&larr; Back to home</a>

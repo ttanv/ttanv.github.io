@@ -1,12 +1,31 @@
 ---
 layout: blog
-title: "LEVI: Better LLM Optimization for the Price of a Cup of Coffee"
-subtitle: "A harness-first framework for LLM-guided evolutionary search. Beats OpenEvolve/GEPA at 1/6th the cost. Beats AlphaEvolve's Circle Packing while mostly using a 30B model."
+title: "LEVI: LLM-Based Optimization at a Fraction of the Cost"
+subtitle: "A harness-first framework for LLM-guided evolutionary search. Highest ADRS scores at 1.5--6.5x lower cost."
 date: 2026-03-01
 permalink: /levi
 ---
 
 Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
+
+<nav class="blog-toc" id="blog-toc">
+  <ul>
+    <li><a href="#key-insight-invest-in-the-harness-not-the-model">Key Insight</a></li>
+    <li><a href="#stratified-model-allocation">Stratified Model Allocation</a></li>
+    <li><a href="#improved-diversity-maintenance">Improved Diversity Maintenance</a>
+      <ul>
+        <li><a href="#getting-started-with-levi">Getting Started</a></li>
+      </ul>
+    </li>
+    <li><a href="#adrs-benchmark-results">ADRS Results</a>
+      <ul>
+        <li><a href="#cost">Cost</a></li>
+        <li><a href="#controlled-architecture-comparison">Controlled Comparison</a></li>
+      </ul>
+    </li>
+    <li><a href="#lessons-and-looking-forward">Lessons</a></li>
+  </ul>
+</nav>
 
 <img src="/results/txn_scheduling.png" alt="Controlled comparison: LEVI vs OpenEvolve vs GEPA on Transaction Scheduling, same model, same budget" style="max-width:600px;width:100%;height:auto;margin:1rem 0;">
 <p class="figure-caption">Controlled comparison on Transaction Scheduling. Same model (Qwen3-30B-A3B), same budget (750 evaluations), three seeds.</p>
@@ -20,14 +39,6 @@ Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
   margin-top: -1rem;
   margin-bottom: 2rem;
   font-style: italic;
-}
-.section-desc {
-  color: var(--text-primary);
-  font-size: 15px;
-  line-height: 1.7;
-  margin-top: -0.5rem;
-  margin-bottom: 1.5rem;
-  opacity: 0.75;
 }
 .sidenote-ref {
   font-size: 0.75em;
@@ -73,15 +84,11 @@ Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
 }
 </style>
 
-## In Plain English
+This blog introduces LEVI: an LLM-based evolutionary framework that produces SOTA performances on [ADRS](https://ucbskyadrs.github.io/) problems at a fraction of the cost. It is built on the key insight that too many frameworks assume access to the largest SOTA models, and build their harnesses around them.
 
-I tried writing an elaborate technical blog about LEVI. As much as I tried, it's now over 2000 words and contains technical terms no one outside of the niche would understand. I think I may have ended up using my writing-a-paper muscles to write a blog. So let's give this another try. This time I'll write closer to my own words, and completely omit technical jargon I deem unworthy. The full technical blog can still be found [below](#background-and-motivation), but I want this to be the canonical intro.
+## Key Insight: Invest in the Harness, Not the Model
 
-The larger problem I'm trying to solve is making LLM-guided optimization (think AlphaEvolve, GEPA, ShinkaEvolve) much more accessible and affordable, without sacrificing any of the results. I find this to be a promising and exciting direction, yet the average researcher can't use these methods without burning through large budgets. I want to make this thing I'm excited about more accessible. I also think the niche is new enough for there to be large efficiency gains we're still missing.
-
-The way I think we can get those efficiency gains while maintaining or improving raw results is simple: invest in the harness instead of the model. Too many frameworks assume access to large models, and build their harnesses around them. This should not be the default. In fact, the original FunSearch paper reported being unable to benefit from larger models, and only with AlphaEvolve did they succeed. Starting from harnesses that benefit from smaller models should be the default, not seen as just some "efficiency gains." And no, improving the harness does not mean adding complexity. The two are not equivalent.
-
-As a result, I present LEVI (LLM Evolution through Voronoi Initialization). LEVI scores the highest across all competing frameworks on the ADRS benchmark, with a 1.5--6.5x decrease in cost. It is built on two simple ideas:
+Assuming access to the largest models should not be the default. In fact, the original [FunSearch](https://www.nature.com/articles/s41586-023-06924-6) paper reported being unable to benefit from larger models, and only with [AlphaEvolve](https://deepmind.google/blog/alphaevolve-a-gemini-powered-coding-agent-for-designing-advanced-algorithms/) did they succeed. The open-source community often misses this, throwing the strongest models at every step.<span class="sidenote-ref">1,2</span><span class="sidenote"><span class="sn-num">1</span> <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a>: uses Claude Opus for mutations.</span><span class="sidenote"><span class="sn-num">2</span> <a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025): relies on frontier-scale models throughout the search.</span> LEVI takes a harness-first approach instead, through two key components: **stratified model allocation** and **improved diversity maintenance.**
 
 <div class="diagram">
   <div class="levi-arch-diagram" id="levi-arch-diagram">
@@ -284,608 +291,214 @@ As a result, I present LEVI (LLM Evolution through Voronoi Initialization). LEVI
 })();
 </script>
 
-<p class="figure-caption">Hover over each component for a detailed description.</p>
+<p class="figure-caption">LEVI's architecture: diverse seeds initialize a CVT-MAP-Elites archive; smaller models handle most mutations; a frontier model injects paradigm shifts every K evaluations. Hover over each component for details.</p>
 
-**1) Smarter allocation of LLMs.** Allocate larger, more capable LLMs for rare but creative paradigm shifts. Allocate smaller, cheaper LLMs for the majority of the mutations. Larger models can suggest creative, working code that has a higher chance of moving the evolutionary process forward. But they are much more expensive, and for most mutations, completely unnecessary. It might take a smaller model 5 times the attempts to get the same results, but a Qwen 30B is 40x cheaper than the latest GPT 5.4. The economics make this a completely reasonable trade-off.
+## Stratified Model Allocation
 
-This is further supported by the evolutionary process being completely blind — a part often forgotten when considering model choice. The SOTA results, the completely new mathematical constructions, come out of blind mutations over a long timeline. Consider the capset result from the FunSearch paper: they used a ~30B model and it took around a *million* mutations. They didn't reach that construction because raw intelligence kept increasing — the model was doing blind, unguided changes that compounded over time into something completely new. Given this, I think larger models should strictly give high-level guidance on promising areas of search, so smaller models don't waste time on unpromising local minima.
-
-**2) Better diversity maintenance.** Since we're relying on smaller models' quantity over larger models' quality, we'll run into more minor changes that may have no effect. Stupid changes are fine — they often lead to the most interesting ideas. But we can't pollute our archive with a single strategy, lest we get stuck in a local minimum. We want to maintain a diverse archive of different strategies, any of which may yield the next best score.
-
-LEVI's diversity mechanism takes the best of both AlphaEvolve's MAP-Elites approach (maintain solutions along a grid of diversity dimensions) and GEPA's Pareto frontier (different algorithms have different trade-offs across problem instances). We use both structural behaviors (number of math operators, cyclomatic complexity) and functional behaviors (Pareto-like trade-offs) as dimensions. To initialize, we run a phase that sequentially creates algorithmically diverse pieces of code to set our bounds. This makes diversity much more powerful while remaining cheap and simple.
-
-Together, these two ideas let LEVI match or beat every competing framework on the [ADRS benchmark](https://ucbskyadrs.github.io/) while spending a fraction of the budget:
-
-| Problem | LEVI | Best Competitor | Cost Savings |
-|---------|------|-----------------|--------------|
-| Spot Single-Reg | 51.7 | GEPA 51.4 | 6.7x cheaper |
-| Spot Multi-Reg | 72.4 | OpenEvolve 66.7 | 5.6x cheaper |
-| LLM-SQL | 78.3 | OpenEvolve 72.5 | 4.4x cheaper |
-| Cloudcast | 100.0 | GEPA 96.6 | 3.3x cheaper |
-| Prism | 87.4 | Tied | 3.3x cheaper |
-| EPLB | 74.6 | GEPA 70.2 | 3.3x cheaper |
-| Txn Scheduling | 71.1 | OpenEvolve 70.0 | 1.5x cheaper |
-
-## Background and Motivation
-
-<p class="section-desc">Why existing frameworks couple strong performance with large budgets, and why that coupling is a design choice rather than a fundamental requirement.</p>
-
-The idea of pairing large language models with evolutionary search over programs was introduced by FunSearch, which used an island-based method to discover solutions to problems that are easy to verify but hard to solve. AlphaEvolve scaled the paradigm to stronger LLMs and larger codebases, and subsequent work extended it to mathematical constructions, heuristic design, prompt optimization, and systems research. The core loop is simple: an LLM proposes candidate programs, an evaluator scores them, and a selection mechanism guides the population toward better solutions.
-
-Several open-source frameworks now implement this loop: OpenEvolve, ShinkaEvolve, and GEPA being the most widely used. These have demonstrated strong results, but they share a common characteristic: strong performance is tightly coupled with large budgets and frontier-scale models. Most published runs assume access to frontier models like Opus, GPT, or Gemini Pro,<span class="sidenote-ref">1,2</span><span class="sidenote"><span class="sn-num">1</span> <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a>: uses Claude Opus for mutations.</span><span class="sidenote"><span class="sn-num">2</span> <a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025): relies on frontier-scale models throughout the search.</span> making the paradigm expensive to use and difficult to iterate on.
-
-We believe this coupling reflects a design assumption more than a fundamental requirement. Existing frameworks were built with frontier models as the default, and their search architectures reflect this: when diversity stalls, the response tends to be additional layers of mechanism (islands, embedding-based novelty filters, LLM judges), each patching over convergence that still occurs, rather than preventing it at the archive level. GEPA takes a cleaner approach through per-instance Pareto fronts, but its diversity signal weakens when performance across instances is highly correlated. The result across the board is that capable models end up doing double duty: both proposing new solutions and compensating for a selection layer that lets the population narrow too quickly.
-
-LEVI takes a different starting point. Rather than building the harness around the assumption of a strong model, we ask what the search architecture should look like if model calls are expensive and limited. By improving the archive's ability to maintain structurally diverse solutions throughout the search, we reduce the burden on the model, making it possible to get strong results with cheaper models and smaller budgets. The goal is not to eliminate the need for capable models, but to ensure they are used where they matter most, and that researchers without frontier-model budgets can still push the state of the art.
-
-
-## LEVI
-
-<p class="section-desc">LEVI is built on two core ideas: <strong>stratified model allocation</strong> and <strong>improved diversity maintenance</strong>. While explained separately, they are best understood as extensions of each other. The archive provides the structure that makes principled allocation possible, and principled allocation is what makes a diversity-preserving archive practical under tight budgets.</p>
-### Stratified Model Allocation
-
-<p class="section-desc">Match model capacity to task demand: cheap models for refinement, expensive models for paradigm shifts.</p>
-
-Frontier models help, but they are a waste if used for every mutation. Smaller LLMs may actually be preferred under tight budgets, since the sheer quantity of solutions they produce can outweigh the quality advantage of larger models.<span class="sidenote-ref">5</span><span class="sidenote"><span class="sn-num">5</span> The original <a href="https://www.nature.com/articles/s41586-023-06924-6">FunSearch paper</a> (Romera-Paredes et al, 2024) exclusively used smaller models and reported being unable to benefit from larger ones.</span> However, smaller models have a narrower pretraining distribution, limiting their range of ideas and ability to propose fundamentally different approaches. Neither model class is strictly better; they have different strengths.
+Frontier models help, but **they are a waste if used for every mutation**. Smaller LLMs may actually be preferred under tight budgets, since the sheer quantity of solutions they produce can outweigh the quality advantage of larger models. However, smaller models have a narrower pretraining distribution, limiting their range of ideas and ability to propose fundamentally different approaches. Neither model class is strictly better; they just have different strengths.
 
 Some existing frameworks already support multiple models, but treat them as interchangeable, sampling from an ensemble uniformly or routing calls without regard to what the mutation actually demands. This ignores a natural asymmetry: proposing an entirely new algorithmic direction requires broad knowledge and creative reasoning, while refining an existing approach (adjusting constants, reordering operations, tuning edge cases) requires far less. The harness should be aware of this distinction and allocate accordingly.
 
 LEVI introduces stratified model allocation, which matches model capacity to task demand. Smaller, cheaper models handle the majority of the search: local refinements and incremental improvements within an established algorithmic family. Larger models are reserved for infrequent *paradigm shifts*: mutations that aim to propose structurally different approaches rather than polish existing ones. The principle is straightforward: allocate each model toward its strength. Small models for breadth and throughput, large models for creative leaps.
 
-However, this raises two questions. First, how do we select representative solutions from each algorithmic family to give the larger model meaningful context for paradigm shifts? Second, since we now rely more heavily on smaller models and their volume of output, we need a more robust mechanism to prevent the archive from converging, because quantity without diversity is just noise.
+However, this raises two questions. First, how do we select representative solutions from each algorithmic family to give the larger model meaningful context for paradigm shifts? Second, since we now rely more heavily on smaller models and their volume of output, we need a more robust mechanism to prevent the archive from converging.
 
-### Improved Diversity Maintenance
-
-<p class="section-desc">A unified fingerprint space with noise-perturbed initialization keeps the archive structurally diverse throughout the search.</p>
-
-The diversity mechanism must address two things: how to represent solutions and how to initialize the archive.
-
-**Unifying structural and performance diversity.** Existing frameworks maintain diversity along different axes. OpenEvolve considers structural features like code length; GEPA considers per-instance performance trade-offs through Pareto fronts. Both capture something real, but neither captures the full picture. Structure alone misses behavioral differences, and per-instance scores alone miss solutions that perform similarly but work in fundamentally different ways. Rather than choosing one, we use both as dimensions of a single behavioral descriptor. Each solution is mapped to a *fingerprint*: a vector of AST-based structural features (depth, loop count, cyclomatic complexity, etc.) alongside per-instance performance scores, normalized and projected to [0, 1]. This fingerprint lives in a CVT-MAP-Elites archive, where a Voronoi tessellation over the combined space maintains geometric structure that neither axis provides alone. This also directly answers the first question from the previous section: the Voronoi regions naturally cluster solutions into algorithmic families, giving us representative solutions for paradigm shifts.
-
-**Initializing between two extremes.** Traditional CVT-MAP-Elites initializes centroids uniformly across the descriptor space. With the higher dimensionality we use (6 to 10 dims), this leads to an extremely sparse tessellation where most regions will never be visited. A purely data-driven approach (fitting centroids to the first observed solutions) solves sparsity but creates the opposite problem: the archive's geometry overfits to whatever strategies appear early, leaving little room for novel approaches that emerge later. We take a middle path: *data-driven initialization with noise*. We generate a small set of structurally distinct seed programs (fewer than 10), expand them into variants, fingerprint them all, and then add Gaussian noise before fitting centroids. The seeds anchor the tessellation in regions of the space that viable programs actually occupy, while the noise broadens each family's footprint, ensuring the archive can accept innovations that fall between or outside the initial seed families. In practice, this is much more effective than either extreme.
-
-
-
-## Preliminary Results: ADRS Benchmark
-
-<p class="section-desc">We evaluate on the ADRS benchmark suite<span class="sidenote-ref">4</span><span class="sidenote"><span class="sn-num">4</span> <a href="https://ucbskyadrs.github.io/">ADRS</a> (Cheng et al, 2025): benchmark suite from UC Berkeley for LLM-guided optimization on real-world systems problems.</span> introduced by Cheng et al.: a set of real-world systems problems spanning cloud scheduling, load balancing, SQL optimization, and transaction scheduling. We evaluate on seven of the nine problems. Our archive uses 50 centroids initialized via the fingerprint-then-perturb procedure with 5 structurally distinct seeds. Approximately 90% of LLM calls are routed to lightweight models (Qwen3-30B-A3B and MiMo-v2-Flash), with the remaining 10% reserved for paradigm shifts via Gemini Flash 3. We run 600--2,000 generations per problem.</p>
-
-### Benchmark Scores
-
-<div class="adrs-dashboard">
-  <div class="adrs-controls">
-    <!-- Legend -->
-    <div class="adrs-legend" id="adrs-legend">
-      <div class="adrs-legend-item" data-framework="GEPA">
-        <span class="adrs-swatch swatch-gepa"></span>
-        <span class="adrs-legend-name">GEPA</span>
-      </div>
-      <div class="adrs-legend-item" data-framework="OpenEvolve">
-        <span class="adrs-swatch swatch-openevolve"></span>
-        <span class="adrs-legend-name">OpenEvolve</span>
-      </div>
-      <div class="adrs-legend-item" data-framework="ShinkaEvolve">
-        <span class="adrs-swatch swatch-shinka"></span>
-        <span class="adrs-legend-name">ShinkaEvolve</span>
-      </div>
-      <div class="adrs-legend-item" data-framework="LEVI">
-        <span class="adrs-swatch swatch-levi"></span>
-        <span class="adrs-legend-name adrs-legend-levi">LEVI</span>
-      </div>
-    </div>
-    <div class="adrs-view-toggle" id="adrs-view-toggle" role="tablist" aria-label="ADRS view toggle">
-      <button type="button" class="adrs-toggle-btn is-active" data-view="chart" role="tab" aria-selected="true" aria-controls="adrs-chart-view">Diagram</button>
-      <button type="button" class="adrs-toggle-btn" data-view="table" role="tab" aria-selected="false" aria-controls="adrs-table-view">Table</button>
-    </div>
-  </div>
-
-  <!-- Chart -->
-  <div class="adrs-view" id="adrs-chart-view" data-adrs-view="chart">
-    <div class="adrs-chart-container">
-      <canvas id="adrs-chart"></canvas>
-    </div>
-  </div>
-
-  <!-- Table -->
-  <div class="adrs-view" id="adrs-table-view" data-adrs-view="table" hidden>
-    <div class="adrs-table-card">
-      <div class="adrs-table-wrap">
-        <table class="adrs-table" id="adrs-table">
-        <thead>
-          <tr>
-            <th class="adrs-sticky">Framework</th>
-            <th class="adrs-average">Average</th>
-            <th>Cloudcast</th>
-            <th>EPLB</th>
-            <th>LLM-SQL</th>
-            <th>Prism</th>
-            <th>Spot Multi-Reg</th>
-            <th>Spot Single-Reg</th>
-            <th>Txn Scheduling</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr data-framework="GEPA">
-            <td class="adrs-sticky">
-              <div class="adrs-fw">
-                <span class="adrs-swatch swatch-gepa"></span>
-                <span class="adrs-fw-name">GEPA</span>
-              </div>
-            </td>
-            <td class="adrs-average"><span class="adrs-val">71.9</span></td>
-            <td><span class="adrs-val">96.6</span></td>
-            <td><span class="adrs-val">70.2</span></td>
-            <td><span class="adrs-val">67.7</span></td>
-            <td><span class="adrs-val is-best">87.4</span></td>
-            <td><span class="adrs-val">62.2</span></td>
-            <td><span class="adrs-val">51.4</span></td>
-            <td><span class="adrs-val">67.7</span></td>
-          </tr>
-          <tr data-framework="OpenEvolve">
-            <td class="adrs-sticky">
-              <div class="adrs-fw">
-                <span class="adrs-swatch swatch-openevolve"></span>
-                <span class="adrs-fw-name">OpenEvolve</span>
-              </div>
-            </td>
-            <td class="adrs-average"><span class="adrs-val">70.6</span></td>
-            <td><span class="adrs-val">92.9</span></td>
-            <td><span class="adrs-val">62.0</span></td>
-            <td><span class="adrs-val">72.5</span></td>
-            <td><span class="adrs-val is-best">87.4</span></td>
-            <td><span class="adrs-val">66.7</span></td>
-            <td><span class="adrs-val">42.5</span></td>
-            <td><span class="adrs-val">70.0</span></td>
-          </tr>
-          <tr data-framework="ShinkaEvolve">
-            <td class="adrs-sticky">
-              <div class="adrs-fw">
-                <span class="adrs-swatch swatch-shinka"></span>
-                <span class="adrs-fw-name">ShinkaEvolve</span>
-              </div>
-            </td>
-            <td class="adrs-average"><span class="adrs-val">67.4</span></td>
-            <td><span class="adrs-val">72.0</span></td>
-            <td><span class="adrs-val">66.4</span></td>
-            <td><span class="adrs-val">68.5</span></td>
-            <td><span class="adrs-val is-best">87.4</span></td>
-            <td><span class="adrs-val">63.6</span></td>
-            <td><span class="adrs-val">45.6</span></td>
-            <td><span class="adrs-val">68.2</span></td>
-          </tr>
-          <tr class="is-levi" data-framework="LEVI">
-            <td class="adrs-sticky">
-              <div class="adrs-fw">
-                <span class="adrs-swatch swatch-levi"></span>
-                <span class="adrs-fw-name">LEVI</span>
-              </div>
-            </td>
-            <td class="adrs-average"><span class="adrs-val is-best is-levi">76.5</span></td>
-            <td><span class="adrs-val is-best is-levi">100.0</span></td>
-            <td><span class="adrs-val is-best is-levi">74.6</span></td>
-            <td><span class="adrs-val is-best is-levi">78.3</span></td>
-            <td><span class="adrs-val is-best is-levi">87.4</span></td>
-            <td><span class="adrs-val is-best is-levi">72.4</span></td>
-            <td><span class="adrs-val is-best is-levi">51.7</span></td>
-            <td><span class="adrs-val is-best is-levi">71.1</span></td>
-          </tr>
-        </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="adrs-note">Bold values indicate best performance per benchmark.</div>
-  </div>
+<div class="callout">
+<div class="callout-label">Key idea</div>
+<p>LEVI matches model capacity to task demand: cheap models (e.g. a local Qwen 30B) for refinement, expensive models for paradigm shifts.</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-(function() {
-  const FRAMEWORKS = ["GEPA", "OpenEvolve", "ShinkaEvolve", "LEVI"];
-  const BENCHMARKS = ["Average", "Cloudcast", "EPLB", "LLM-SQL", "Prism", "Spot Multi-Reg", "Spot Single-Reg", "Txn Scheduling"];
-  const DATA = {
-    "GEPA":         [71.9, 96.6, 70.2, 67.7, 87.4, 62.2, 51.4, 67.7],
-    "OpenEvolve":   [70.6, 92.9, 62.0, 72.5, 87.4, 66.7, 42.5, 70.0],
-    "ShinkaEvolve": [67.4, 72.0, 66.4, 68.5, 87.4, 63.6, 45.6, 68.2],
-    "LEVI":         [76.5, 100.0, 74.6, 78.3, 87.4, 72.4, 51.7, 71.1],
-  };
+## Improved Diversity Maintenance
 
-  function getColors() {
-    const style = getComputedStyle(document.documentElement);
-    return {
-      "GEPA": style.getPropertyValue('--adrs-gepa').trim() || '#7a9e8a',
-      "OpenEvolve": style.getPropertyValue('--adrs-openevolve').trim() || '#8b96b3',
-      "ShinkaEvolve": style.getPropertyValue('--adrs-shinka').trim() || '#b0a07a',
-      "LEVI": style.getPropertyValue('--adrs-levi').trim() || '#c0392b',
-    };
-  }
+**Unifying Structural and Behavioral Diversity.** A less obvious reason existing frameworks require frontier models is that those models are doing double duty. Their larger output space implicitly maintains diversity: a GPT-5 or Claude Opus naturally produces a wider spread of solutions than a 30B model, ignoring the fact that the archive itself has no strong mechanism to prevent convergence. When diversity does collapse, the response has been to add complexity on top: ranging from rejection sampling using even more LLM calls to using embedding models. These are compensations for a weak foundation, not solutions to the underlying issue.
 
-  function getLeviDelta(benchIdx) {
-    const leviVal = DATA["LEVI"][benchIdx];
-    let secondBest = 0;
-    FRAMEWORKS.forEach(fw => {
-      if (fw !== "LEVI" && DATA[fw][benchIdx] > secondBest) secondBest = DATA[fw][benchIdx];
-    });
-    return +(leviVal - secondBest).toFixed(1);
-  }
+The underlying issue is that existing frameworks maintain diversity along **only one axis**, and a narrow one at that. OpenEvolve considers structural features like code length; GEPA considers per-instance performance trade-offs through Pareto fronts (in practice often more powerful than the former mechanism). Both capture something real, but neither captures the full picture. Structure alone misses behavioral differences: two programs with different loop counts might solve the problem identically. And per-instance scores alone miss solutions that perform similarly on individual instances but work in fundamentally different ways.
 
-  let chart = null;
-  let hoveredFramework = null;
-  let currentView = 'chart';
+Rather than choosing one axis, LEVI uses both as dimensions of a single behavioral descriptor. Each solution is mapped to a *fingerprint*: a vector combining code-structural features (going beyond simple dimensions like code length to measures such as loop count, cyclomatic complexity) alongside per-instance behavioral results, all normalized and projected to [0, 1]. The framework is also flexible here: users can define their own dimensions when the defaults do not fit their problem.
 
-  function createChart() {
-    const ctx = document.getElementById('adrs-chart');
-    if (!ctx) return;
+This fingerprint lives in a CVT-MAP-Elites archive, where a Voronoi tessellation over the combined space maintains geometric structure that neither axis provides alone. The archive holds a diverse set of solutions with different values along the different dimensions. This also directly answers the first question from the previous section: the Voronoi regions naturally cluster solutions into algorithmic families, giving us representative solutions for paradigm shifts.
 
-    const colors = getColors();
-    const style = getComputedStyle(document.documentElement);
-    const textColor = style.getPropertyValue('--text-secondary').trim() || '#888';
-    const gridColor = style.getPropertyValue('--border-color').trim() || '#2a2a2a';
+**Archive Initialization.** Traditional CVT-MAP-Elites initializes centroids uniformly across the descriptor space. With the higher dimensionality we use (6 to 10 dims), this leads to an extremely sparse tessellation where most regions will never be visited. LEVI adopts a **data-driven approach**: it creates a set of deliberately unique approaches (regardless of scores) through sequential generation, and then uses those to create the initial centroids. This ensures that the archive is based on solutions that are known to be different.
 
-    const datasets = FRAMEWORKS.map(fw => ({
-      label: fw,
-      data: DATA[fw],
-      backgroundColor: colors[fw],
-      borderRadius: 2,
-      barPercentage: 0.85,
-      categoryPercentage: 0.8,
-    }));
+<div class="callout">
+<div class="callout-label">Key idea</div>
+<p>LEVI maintains diversity through a shared fingerprint space over both structure and behavior, so the archive itself carries more of the diversity burden instead of relying on ever-stronger models or auxiliary heuristics.</p>
+</div>
 
-    if (chart) chart.destroy();
+### Getting Started with LEVI
 
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: BENCHMARKS,
-        datasets: datasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: style.getPropertyValue('--card-bg').trim() || '#1a1a1a',
-            titleColor: style.getPropertyValue('--heading-color').trim() || '#fff',
-            bodyColor: textColor,
-            borderColor: gridColor,
-            borderWidth: 1,
-            padding: 12,
-            callbacks: {
-              afterBody: function(context) {
-                const benchIdx = context[0].dataIndex;
-                const delta = getLeviDelta(benchIdx);
-                return delta > 0 ? `\nLEVI vs 2nd best: +${delta}` : '\nLEVI vs 2nd best: tied';
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              color: textColor,
-              font: { size: 11 },
-              maxRotation: 25,
-              minRotation: 25
-            }
-          },
-          y: {
-            min: 40,
-            max: 105,
-            grid: {
-              color: gridColor,
-              drawBorder: false
-            },
-            ticks: {
-              color: textColor,
-              font: { size: 11, family: 'ui-monospace, monospace' }
-            }
-          }
-        }
-      }
-    });
+Below is an example LEVI program, optimizing a dummy bin packing problem. All of the framework details are abstracted away, and the user can focus on defining the problem.
 
-    updateChartOpacity();
-  }
+```python
+import levi
 
-  function updateChartOpacity() {
-    if (!chart) return;
-    const colors = getColors();
-    chart.data.datasets.forEach((dataset, i) => {
-      const fw = FRAMEWORKS[i];
-      const isLevi = fw === "LEVI";
-      let opacity;
-      if (hoveredFramework) {
-        opacity = hoveredFramework === fw ? 1 : 0.15;
-      } else {
-        opacity = isLevi ? 1 : 0.55;
-      }
-      const baseColor = colors[fw];
-      dataset.backgroundColor = hexToRgba(baseColor, opacity);
-    });
-    chart.update('none');
-  }
+def score_fn(pack):
+    bins = pack([4, 8, 1, 4, 2, 1], 10)
+    wasted = sum(10 - sum(b) for b in bins)
+    return {"score": max(0.0, 100.0 - wasted)}
 
-  function hexToRgba(hex, alpha) {
-    hex = hex.replace('#', '');
-    if (hex.length === 3) {
-      hex = hex.split('').map(c => c + c).join('');
-    }
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
+result = levi.evolve_code(
+    "Optimize bin packing to minimize wasted space",
+    function_signature="def pack(items, bin_capacity):",
+    score_fn=score_fn,
+    model="openai/gpt-4o-mini",
+    budget_dollars=2.0,
+)
+```
 
-  function handleHover(framework) {
-    hoveredFramework = framework;
-    updateChartOpacity();
+Try it out at [github.com/ttanv/levi](https://github.com/ttanv/levi)!
 
-    document.querySelectorAll('.adrs-legend-item').forEach(item => {
-      const fw = item.dataset.framework;
-      if (hoveredFramework && hoveredFramework !== fw) {
-        item.classList.add('dimmed');
-      } else {
-        item.classList.remove('dimmed');
-      }
-    });
 
-    document.querySelectorAll('#adrs-table tbody tr').forEach(row => {
-      const fw = row.dataset.framework;
-      if (hoveredFramework && hoveredFramework !== fw) {
-        row.classList.add('dimmed');
-      } else {
-        row.classList.remove('dimmed');
-      }
-    });
-  }
 
-  function setView(view) {
-    currentView = view;
-    const chartView = document.getElementById('adrs-chart-view');
-    const tableView = document.getElementById('adrs-table-view');
-    const toggle = document.getElementById('adrs-view-toggle');
-    if (chartView) chartView.hidden = view !== 'chart';
-    if (tableView) tableView.hidden = view !== 'table';
-    if (toggle) {
-      toggle.querySelectorAll('.adrs-toggle-btn').forEach(btn => {
-        const isActive = btn.dataset.view === view;
-        btn.classList.toggle('is-active', isActive);
-        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      });
-    }
-    if (view === 'chart' && chart) {
-      setTimeout(() => chart.resize(), 0);
-    }
-  }
+## ADRS Benchmark Results
 
-  function initInteractivity() {
-    document.querySelectorAll('.adrs-legend-item').forEach(item => {
-      item.addEventListener('mouseenter', () => handleHover(item.dataset.framework));
-      item.addEventListener('mouseleave', () => handleHover(null));
-    });
+We evaluate on the ADRS benchmark suite,<span class="sidenote-ref">3</span><span class="sidenote"><span class="sn-num">3</span> <a href="https://ucbskyadrs.github.io/">ADRS</a> (Cheng et al, 2025): benchmark suite from UC Berkeley for LLM-guided optimization on real-world systems problems.</span> a set of real-world systems problems spanning cloud scheduling, load balancing, SQL optimization, and transaction scheduling.
 
-    document.querySelectorAll('#adrs-table tbody tr').forEach(row => {
-      row.addEventListener('mouseenter', () => handleHover(row.dataset.framework));
-      row.addEventListener('mouseleave', () => handleHover(null));
-    });
+<div class="adrs-table-card">
+  <table class="adrs-table" id="adrs-table">
+  <thead>
+    <tr>
+      <th class="adrs-sticky">Framework</th>
+      <th class="adrs-average">Avg</th>
+      <th>Cloud</th>
+      <th>EPLB</th>
+      <th>SQL</th>
+      <th>Prism</th>
+      <th>Spot-M</th>
+      <th>Spot-S</th>
+      <th>Txn</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="adrs-sticky">
+        <div class="adrs-fw">
+          <span class="adrs-swatch swatch-gepa"></span>
+          <span class="adrs-fw-name">GEPA</span>
+        </div>
+      </td>
+      <td class="adrs-average"><span class="adrs-val">71.9</span></td>
+      <td><span class="adrs-val">96.6</span></td>
+      <td><span class="adrs-val">70.2</span></td>
+      <td><span class="adrs-val">67.7</span></td>
+      <td><span class="adrs-val is-best">87.4</span></td>
+      <td><span class="adrs-val">62.2</span></td>
+      <td><span class="adrs-val">51.4</span></td>
+      <td><span class="adrs-val">67.7</span></td>
+    </tr>
+    <tr>
+      <td class="adrs-sticky">
+        <div class="adrs-fw">
+          <span class="adrs-swatch swatch-openevolve"></span>
+          <span class="adrs-fw-name">OpenEvolve</span>
+        </div>
+      </td>
+      <td class="adrs-average"><span class="adrs-val">70.6</span></td>
+      <td><span class="adrs-val">92.9</span></td>
+      <td><span class="adrs-val">62.0</span></td>
+      <td><span class="adrs-val">72.5</span></td>
+      <td><span class="adrs-val is-best">87.4</span></td>
+      <td><span class="adrs-val">66.7</span></td>
+      <td><span class="adrs-val">42.5</span></td>
+      <td><span class="adrs-val">70.0</span></td>
+    </tr>
+    <tr>
+      <td class="adrs-sticky">
+        <div class="adrs-fw">
+          <span class="adrs-swatch swatch-shinka"></span>
+          <span class="adrs-fw-name">ShinkaEvolve</span>
+        </div>
+      </td>
+      <td class="adrs-average"><span class="adrs-val">67.4</span></td>
+      <td><span class="adrs-val">72.0</span></td>
+      <td><span class="adrs-val">66.4</span></td>
+      <td><span class="adrs-val">68.5</span></td>
+      <td><span class="adrs-val is-best">87.4</span></td>
+      <td><span class="adrs-val">63.6</span></td>
+      <td><span class="adrs-val">45.6</span></td>
+      <td><span class="adrs-val">68.2</span></td>
+    </tr>
+    <tr class="is-levi">
+      <td class="adrs-sticky">
+        <div class="adrs-fw">
+          <span class="adrs-swatch swatch-levi"></span>
+          <span class="adrs-fw-name">LEVI</span>
+        </div>
+      </td>
+      <td class="adrs-average"><span class="adrs-val is-best is-levi">76.5</span></td>
+      <td><span class="adrs-val is-best is-levi">100.0</span></td>
+      <td><span class="adrs-val is-best is-levi">74.6</span></td>
+      <td><span class="adrs-val is-best is-levi">78.3</span></td>
+      <td><span class="adrs-val is-best is-levi">87.4</span></td>
+      <td><span class="adrs-val is-best is-levi">72.4</span></td>
+      <td><span class="adrs-val is-best is-levi">51.7</span></td>
+      <td><span class="adrs-val is-best is-levi">71.1</span></td>
+    </tr>
+  </tbody>
+  </table>
+</div>
+<div class="adrs-note">Bold values indicate best per benchmark. Cloud = Cloudcast, SQL = LLM-SQL, Spot-M/S = Spot Multi/Single-Reg, Txn = Txn Scheduling.</div>
 
-    const toggle = document.getElementById('adrs-view-toggle');
-    if (toggle) {
-      toggle.querySelectorAll('.adrs-toggle-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const view = btn.dataset.view;
-          if (view && view !== currentView) setView(view);
-        });
-      });
-    }
-  }
-
-  const observer = new MutationObserver(() => {
-    setTimeout(createChart, 50);
-  });
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
-  if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      setTimeout(createChart, 50);
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      createChart();
-      initInteractivity();
-      setView(currentView);
-    });
-  } else {
-    createChart();
-    initInteractivity();
-    setView(currentView);
-  }
-})();
-</script>
-
-<p class="figure-caption">Figure 3: ADRS benchmark scores (%). Bold indicates best per problem. LEVI achieves the highest score on every problem where improvement is possible.</p>
-
-LEVI achieves the highest score on every problem where improvement is possible, with an average of 76.5 compared to 71.9 for the next-best framework (GEPA), a +4.6 point improvement over the prior state of the art. On Cloudcast, LEVI reaches a perfect 100.0, indicating the problem is fully solved under the benchmark's scoring function. The largest gains appear on LLM-SQL (+5.8) and Spot Multi (+5.7), while more modest improvements on Spot Single (+0.3) and Transaction Scheduling (+1.1) reflect problems with smaller decision spaces or harder optimization landscapes. Prism remains tied at 87.4 across all frameworks, confirming that the current problem formulation admits a single dominant solution.
-
-An additional observation: no single baseline is consistently second-best across problems, reflecting how the different diversity mechanisms each framework employs interact unevenly with different problem structures. LEVI's consistent first-place performance suggests that CVT-MAP-Elites with fingerprint-initialized centroids provides a more robust diversity mechanism regardless of problem characteristics.
-
-<img src="/results/best_score_progression.png" alt="LEVI best score progression over time across problems" style="max-width:100%;height:auto;margin:1.5rem 0;">
-
-<p class="figure-caption">Figure 4: LEVI best score progression over generations. The archive sustains steady improvement throughout the search rather than plateauing early.</p>
+LEVI achieves the highest score on every problem where improvement is possible, with an average of **76.5** compared to 71.9 for the next-best framework (GEPA), a **+4.6 point improvement** over the prior state of the art. On Cloudcast, LEVI reaches a perfect 100.0, indicating the problem is fully solved under the benchmark's scoring function. The largest gains appear on LLM-SQL (+5.8) and Spot Multi (+5.7), while more modest improvements on Spot Single (+0.3) and Transaction Scheduling (+1.1) reflect problems with smaller decision spaces or harder optimization landscapes. Prism remains tied at 87.4 across all frameworks, confirming that the current problem formulation admits a single dominant solution.
 
 ### Cost
 
-<p class="section-desc">Stratified allocation drops per-generation cost by ~10x, enabling more generations at lower total spend.</p>
+LEVI's stratified allocation is the primary driver of cost reduction. By routing the majority of mutations through lightweight models, the per-generation cost drops by roughly an order of magnitude compared to baselines that use GPT-5 or Gemini-3.0-Pro for every call. This allows LEVI to run substantially more generations while still spending less in total: $4.50 per problem on most tasks (Transaction Scheduling: $13), versus $15 to $30 for baselines.
 
-LEVI's stratified allocation is the primary driver of cost reduction. By routing the majority of mutations through lightweight models, the per-generation cost drops by roughly an order of magnitude compared to baselines that use GPT-5 or Gemini-3.0-Pro for every call. This allows LEVI to run substantially more generations while still spending less in total: \$4.50 per problem on most tasks (Transaction Scheduling: \$13), versus \$15 to \$30 for baselines.
-
-<div class="adrs-dashboard">
-  <div class="adrs-chart-container" style="height: 320px;">
-    <canvas id="cost-chart"></canvas>
-  </div>
-  <div class="adrs-note">LEVI uses $4.50 on most tasks (Txn Scheduling: $13) versus baselines' $15 to $30.</div>
+<div class="adrs-table-card">
+  <table class="adrs-table">
+  <thead>
+    <tr>
+      <th class="adrs-sticky">Problem</th>
+      <th>Baseline</th>
+      <th>LEVI</th>
+      <th>Savings</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="adrs-sticky"><span class="adrs-fw-name">Spot Single-Reg</span></td><td><span class="adrs-val">$30</span></td><td><span class="adrs-val is-best is-levi">$4.50</span></td><td><span class="adrs-val is-best is-levi">6.7x</span></td></tr>
+    <tr><td class="adrs-sticky"><span class="adrs-fw-name">Spot Multi-Reg</span></td><td><span class="adrs-val">$25</span></td><td><span class="adrs-val is-best is-levi">$4.50</span></td><td><span class="adrs-val is-best is-levi">5.6x</span></td></tr>
+    <tr><td class="adrs-sticky"><span class="adrs-fw-name">LLM-SQL</span></td><td><span class="adrs-val">$20</span></td><td><span class="adrs-val is-best is-levi">$4.50</span></td><td><span class="adrs-val is-best is-levi">4.4x</span></td></tr>
+    <tr><td class="adrs-sticky"><span class="adrs-fw-name">Cloudcast</span></td><td><span class="adrs-val">$15</span></td><td><span class="adrs-val is-best is-levi">$4.50</span></td><td><span class="adrs-val is-best is-levi">3.3x</span></td></tr>
+    <tr><td class="adrs-sticky"><span class="adrs-fw-name">Prism</span></td><td><span class="adrs-val">$15</span></td><td><span class="adrs-val is-best is-levi">$4.50</span></td><td><span class="adrs-val is-best is-levi">3.3x</span></td></tr>
+    <tr><td class="adrs-sticky"><span class="adrs-fw-name">EPLB</span></td><td><span class="adrs-val">$15</span></td><td><span class="adrs-val is-best is-levi">$4.50</span></td><td><span class="adrs-val is-best is-levi">3.3x</span></td></tr>
+    <tr><td class="adrs-sticky"><span class="adrs-fw-name">Txn Scheduling</span></td><td><span class="adrs-val">$20</span></td><td><span class="adrs-val is-best is-levi">$13</span></td><td><span class="adrs-val is-best is-levi">1.5x</span></td></tr>
+  </tbody>
+  </table>
 </div>
 
-<script>
-(function() {
-  const PROBLEMS   = ["Spot Single-Reg", "Spot Multi-Reg", "LLM-SQL", "Txn Scheduling", "Cloudcast", "Prism", "EPLB"];
-  const BASELINE   = [30, 25, 20, 20, 15, 15, 15];
-  const LEVI_COST  = [4.5, 4.5, 4.5, 13, 4.5, 4.5, 4.5];
-  const REDUCTIONS = ["6.7x", "5.6x", "4.4x", "1.5x", "3.3x", "3.3x", "3.3x"];
-
-  let costChart = null;
-
-  function createCostChart() {
-    const ctx = document.getElementById('cost-chart');
-    if (!ctx) return;
-
-    const style = getComputedStyle(document.documentElement);
-    const textColor = style.getPropertyValue('--text-secondary').trim() || '#888';
-    const gridColor = style.getPropertyValue('--border-color').trim() || '#2a2a2a';
-    const leviColor = style.getPropertyValue('--adrs-levi').trim() || '#ef4444';
-    const headingColor = style.getPropertyValue('--heading-color').trim() || '#fff';
-
-    if (costChart) costChart.destroy();
-
-    costChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: PROBLEMS,
-        datasets: [
-          {
-            label: 'Baseline Cost',
-            data: BASELINE,
-            backgroundColor: 'rgba(100, 116, 139, 0.35)',
-            borderRadius: 3,
-            barPercentage: 0.7,
-            categoryPercentage: 0.75,
-          },
-          {
-            label: 'LEVI Cost',
-            data: LEVI_COST,
-            backgroundColor: leviColor,
-            borderRadius: 3,
-            barPercentage: 0.7,
-            categoryPercentage: 0.75,
-          }
-        ]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            align: 'end',
-            labels: {
-              color: textColor,
-              font: { size: 11 },
-              boxWidth: 12,
-              boxHeight: 4,
-              padding: 16,
-              usePointStyle: false,
-            }
-          },
-          tooltip: {
-            backgroundColor: style.getPropertyValue('--card-bg').trim() || '#1a1a1a',
-            titleColor: headingColor,
-            bodyColor: textColor,
-            borderColor: gridColor,
-            borderWidth: 1,
-            padding: 10,
-            callbacks: {
-              afterBody: function(context) {
-                const idx = context[0].dataIndex;
-                return 'Reduction: ' + REDUCTIONS[idx];
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: gridColor, drawBorder: false },
-            ticks: {
-              color: textColor,
-              font: { size: 11, family: 'ui-monospace, monospace' },
-              callback: function(v) { return '$' + v; }
-            },
-            max: 35,
-          },
-          y: {
-            grid: { display: false },
-            ticks: {
-              color: textColor,
-              font: { size: 12 },
-            }
-          }
-        }
-      },
-      plugins: [{
-        id: 'reductionLabels',
-        afterDatasetsDraw: function(chart) {
-          const meta = chart.getDatasetMeta(1);
-          const ctx2 = chart.ctx;
-          meta.data.forEach(function(bar, i) {
-            ctx2.save();
-            ctx2.font = 'bold 11px ui-monospace, SFMono-Regular, monospace';
-            ctx2.fillStyle = leviColor;
-            ctx2.textAlign = 'left';
-            ctx2.textBaseline = 'middle';
-            ctx2.fillText(REDUCTIONS[i], bar.x + 6, bar.y);
-            ctx2.restore();
-          });
-        }
-      }]
-    });
-  }
-
-  const obs = new MutationObserver(function() { setTimeout(createCostChart, 50); });
-  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
-      setTimeout(createCostChart, 50);
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', createCostChart);
-  } else {
-    createCostChart();
-  }
-})();
-</script>
-
-The cost reduction is not the point; it is evidence that the harness-first approach works. When the archive maintains diversity, cheap models suffice for most of the search.
+The cost reduction is evidence that the harness-first approach works. **When the archive maintains diversity, cheap models suffice for most of the search.**
 
 ### Controlled Architecture Comparison
 
-<p class="section-desc">Same model, same budget, three seeds: isolating the search architecture's contribution.</p>
+Same model, same budget, three seeds: isolating the search architecture's contribution.
 
-The main results compare frameworks that differ simultaneously in model choice, budget, and architecture. To isolate the contribution of the search architecture, we run LEVI, OpenEvolve, and GEPA under identical conditions: a single locally-served Qwen3-30B-A3B model, 750 successful evaluations,<span class="sidenote-ref">3</span><span class="sidenote"><span class="sn-num">3</span> OpenEvolve required reducing parent count from 5 to 2 for the smaller model and still produced many failures. We report successful evaluations rather than total to give OpenEvolve a fair comparison.</span> and three random seeds on two representative problems.
+The main results compare frameworks that differ simultaneously in model choice, budget, and architecture. To isolate the contribution of the search architecture, we run LEVI, OpenEvolve, and GEPA under identical conditions: a single locally-served Qwen3-30B-A3B model, 750 successful evaluations,<span class="sidenote-ref">4</span><span class="sidenote"><span class="sn-num">4</span> OpenEvolve required reducing parent count from 5 to 2 for the smaller model and still produced many failures. We report successful evaluations rather than total to give OpenEvolve a fair comparison.</span> and three random seeds on two representative problems.
 
 **Transaction Scheduling** is a variant of an NP-hard ordering problem where multiple algorithmic families (greedy, simulated annealing, genetic) are viable but performance is measured on a single instance, giving Pareto-based diversity no trade-off to exploit. LEVI reaches a score of 62 within the first 100 evaluations, a level neither baseline achieves at any point. Final scores: LEVI 64.9, OpenEvolve 59.9, GEPA 54.4. Both baselines plateau sharply, consistent with early convergence onto a single algorithmic family; LEVI's curve continues rising past evaluation 500.
 
 <img src="/results/txn_scheduling.png" alt="Transaction Scheduling controlled comparison plot" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
-<p class="figure-caption">Figure 5: Controlled comparison on Transaction Scheduling. Same model, same budget. LEVI reaches 62 within 100 evaluations, a level neither baseline achieves at any point during the run.</p>
+<p class="figure-caption">Transaction Scheduling, controlled (Qwen3-30B, 750 evals, 3 seeds). LEVI hits 62 within 100 evals; neither baseline reaches that level at any point.</p>
 
-**Can't Be Late** is scored across 1,080 simulations that give Pareto-based approaches a richer signal. The final-score gap narrows (LEVI 44.9, OpenEvolve 43.2, GEPA 32.6), but the efficiency gap widens dramatically. LEVI reaches near-peak performance by roughly evaluation 50, while OpenEvolve requires over 600 evaluations to approach the same level, a roughly 12× advantage in sample efficiency.
+**Can't Be Late** is scored across 1,080 simulations that give Pareto-based approaches a richer signal. The final-score gap narrows (LEVI 44.9, OpenEvolve 43.2, GEPA 37.5), but the efficiency gap widens dramatically. LEVI reaches near-peak performance by roughly evaluation 50, while OpenEvolve requires over 600 evaluations to approach the same level, a roughly 12x advantage in sample efficiency.
 
 <img src="/results/cant_be_late.png" alt="Can't Be Late controlled comparison plot" style="max-width:100%;height:auto;margin:1.5rem 0;">
 
-<p class="figure-caption">Figure 6: Controlled comparison on Can't Be Late. LEVI reaches near-peak by evaluation 50; OpenEvolve requires 600+ evaluations to approach the same level.</p>
+<p class="figure-caption">Can't Be Late, same controlled setup. LEVI reaches near-peak by eval 50, roughly 12x faster than OpenEvolve.</p>
 
-These controlled results confirm that the performance gains are attributable to the search architecture, not to model choice or budget. A 30B model under LEVI's search regime matches or exceeds what the same model achieves under alternative selection mechanisms.
+<div class="callout">
+<div class="callout-label">Key finding</div>
+<p>Same model, same budget: the performance gains come from the search architecture, not model choice. A 30B model under LEVI matches or exceeds what the same model achieves under alternative selection mechanisms.</p>
+</div>
 
-**More benchmarks and domains are in progress. ADRS is a first validation, not the full story.**
+## Lessons and Looking Forward
 
-LEVI will be open-sourced on GitHub soon. Point it at a scoring function and a seed program and it runs until the budget is spent.
+Working with smaller models surfaces real tradeoffs that frameworks built around frontier models never have to confront:
+
+- **Higher error rates, but cheaper retries.** Smaller models produce broken code more often, but the calls are so cheap that you can afford many more attempts and still come out ahead on total spend.
+- **Reward hacking.** Smaller models are more susceptible to exploiting evaluator weaknesses rather than genuinely solving the problem. But this is an evaluator problem as much as a model problem, and fixing evaluators benefits every framework.
+- **Code over text.** When expressing a useful idea for a smaller model to work with, code beats natural language. A prompt saying "try simulated annealing" leaves enormous room for interpretation; a code skeleton implementing the acceptance criterion and cooling schedule gives the model something concrete. This is why LEVI's paradigm shift step generates code skeletons rather than text suggestions.
+- **Quantity vs. eval time.** The core advantage of smaller models is volume: as shown above, more cheap calls can outperform fewer expensive ones. But this advantage depends on evaluations being fast. For problems where a single eval takes an hour, every call is precious and larger models become more sensible. LEVI mitigates this for most problems through an async distributed producer-consumer model, but for long-eval domains this is a different dimension of tradeoff worth considering.
+
+**More benchmarks and domains are in progress.** ADRS is a first validation, not the full story. Try LEVI at [github.com/ttanv/levi](https://github.com/ttanv/levi).
