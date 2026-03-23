@@ -73,13 +73,40 @@ Code: [github.com/ttanv/levi](https://github.com/ttanv/levi)
 .sidenote a:hover {
   color: var(--heading-color);
 }
+.blog-footnotes {
+  display: none;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.blog-footnotes ol {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+.blog-footnotes li {
+  margin: 0.4rem 0;
+}
+.blog-footnotes a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.blog-footnotes a:hover {
+  color: var(--heading-color);
+}
 @media screen and (max-width: 1100px) {
   .sidenote {
-    float: none;
-    width: 100%;
-    margin: 0.5rem 0 1rem 0;
-    padding-left: 1rem;
-    border-left: 2px solid var(--border-color);
+    display: none;
+  }
+  .sidenote-ref a {
+    color: var(--blog-link);
+    text-decoration: none;
+  }
+  .blog-footnotes {
+    display: block;
   }
 }
 </style>
@@ -88,7 +115,7 @@ This blog introduces LEVI: an LLM-based evolutionary framework that produces SOT
 
 ## Key Insight: Invest in the Harness, Not the Model
 
-Assuming access to the largest models should not be the default. In fact, the original [FunSearch](https://www.nature.com/articles/s41586-023-06924-6) paper reported being unable to benefit from larger models, and only with [AlphaEvolve](https://deepmind.google/blog/alphaevolve-a-gemini-powered-coding-agent-for-designing-advanced-algorithms/) did they succeed. The open-source community often misses this, throwing the strongest models at every step.<span class="sidenote-ref">1,2</span><span class="sidenote"><span class="sn-num">1</span> <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a>: uses Claude Opus for mutations.</span><span class="sidenote"><span class="sn-num">2</span> <a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025): relies on frontier-scale models throughout the search.</span> LEVI takes a harness-first approach instead, through two key components: **stratified model allocation** and **improved diversity maintenance.**
+Assuming access to the largest models should not be the default. In fact, the original [FunSearch](https://www.nature.com/articles/s41586-023-06924-6) paper reported being unable to benefit from larger models, and only with [AlphaEvolve](https://deepmind.google/blog/alphaevolve-a-gemini-powered-coding-agent-for-designing-advanced-algorithms/) did they succeed. The open-source community often misses this, throwing the strongest models at every step.<span class="sidenote-ref"><a href="#fn1">1</a>,<a href="#fn2">2</a></span><span class="sidenote"><span class="sn-num">1</span> <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a>: uses Claude Opus for mutations.</span><span class="sidenote"><span class="sn-num">2</span> <a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025): relies on frontier-scale models throughout the search.</span> LEVI takes a harness-first approach instead, through two key components: **stratified model allocation** and **improved diversity maintenance.**
 
 <div class="diagram">
   <div class="levi-arch-diagram" id="levi-arch-diagram">
@@ -352,7 +379,7 @@ Try it out at [github.com/ttanv/levi](https://github.com/ttanv/levi)!
 
 ## ADRS Benchmark Results
 
-We evaluate on the ADRS benchmark suite,<span class="sidenote-ref">3</span><span class="sidenote"><span class="sn-num">3</span> <a href="https://ucbskyadrs.github.io/">ADRS</a> (Cheng et al, 2025): benchmark suite from UC Berkeley for LLM-guided optimization on real-world systems problems.</span> a set of real-world systems problems spanning cloud scheduling, load balancing, SQL optimization, and transaction scheduling.
+We evaluate on the ADRS benchmark suite,<span class="sidenote-ref"><a href="#fn3">3</a></span><span class="sidenote"><span class="sn-num">3</span> <a href="https://ucbskyadrs.github.io/">ADRS</a> (Cheng et al, 2025): benchmark suite from UC Berkeley for LLM-guided optimization on real-world systems problems.</span> a set of real-world systems problems spanning cloud scheduling, load balancing, SQL optimization, and transaction scheduling.
 
 <div class="adrs-table-card">
   <table class="adrs-table" id="adrs-table">
@@ -473,7 +500,7 @@ The cost reduction is evidence that the harness-first approach works. **When the
 
 Same model, same budget, three seeds: isolating the search architecture's contribution.
 
-The main results compare frameworks that differ simultaneously in model choice, budget, and architecture. To isolate the contribution of the search architecture, we run LEVI, OpenEvolve, and GEPA under identical conditions: a single locally-served Qwen3-30B-A3B model, 750 successful evaluations,<span class="sidenote-ref">4</span><span class="sidenote"><span class="sn-num">4</span> OpenEvolve required reducing parent count from 5 to 2 for the smaller model and still produced many failures. We report successful evaluations rather than total to give OpenEvolve a fair comparison.</span> and three random seeds on two representative problems.
+The main results compare frameworks that differ simultaneously in model choice, budget, and architecture. To isolate the contribution of the search architecture, we run LEVI, OpenEvolve, and GEPA under identical conditions: a single locally-served Qwen3-30B-A3B model, 750 successful evaluations,<span class="sidenote-ref"><a href="#fn4">4</a></span><span class="sidenote"><span class="sn-num">4</span> OpenEvolve required reducing parent count from 5 to 2 for the smaller model and still produced many failures. We report successful evaluations rather than total to give OpenEvolve a fair comparison.</span> and three random seeds on two representative problems.
 
 **Transaction Scheduling** is a variant of an NP-hard ordering problem where multiple algorithmic families (greedy, simulated annealing, genetic) are viable but performance is measured on a single instance, giving Pareto-based diversity no trade-off to exploit. LEVI reaches a score of 62 within the first 100 evaluations, a level neither baseline achieves at any point. Final scores: LEVI 64.9, OpenEvolve 59.9, GEPA 54.4. Both baselines plateau sharply, consistent with early convergence onto a single algorithmic family; LEVI's curve continues rising past evaluation 500.
 
@@ -502,3 +529,13 @@ Working with smaller models surfaces real tradeoffs that frameworks built around
 - **Quantity vs. eval time.** The core advantage of smaller models is volume: as shown above, more cheap calls can outperform fewer expensive ones. But this advantage depends on evaluations being fast. For problems where a single eval takes an hour, every call is precious and larger models become more sensible. LEVI mitigates this for most problems through an async distributed producer-consumer model, but for long-eval domains this is a different dimension of tradeoff worth considering.
 
 **More benchmarks and domains are in progress.** ADRS is a first validation, not the full story. Try LEVI at [github.com/ttanv/levi](https://github.com/ttanv/levi).
+
+<div class="blog-footnotes">
+<strong>Notes</strong>
+<ol>
+<li id="fn1"><a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/examples/circle_packing/config_phase_1_anthropic.yaml">OpenEvolve config</a>: uses Claude Opus for mutations.</li>
+<li id="fn2"><a href="https://arxiv.org/pdf/2509.19349">ShinkaEvolve</a> (Ye et al, 2025): relies on frontier-scale models throughout the search.</li>
+<li id="fn3"><a href="https://ucbskyadrs.github.io/">ADRS</a> (Cheng et al, 2025): benchmark suite from UC Berkeley for LLM-guided optimization on real-world systems problems.</li>
+<li id="fn4">OpenEvolve required reducing parent count from 5 to 2 for the smaller model and still produced many failures. We report successful evaluations rather than total to give OpenEvolve a fair comparison.</li>
+</ol>
+</div>
