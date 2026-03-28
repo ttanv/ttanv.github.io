@@ -1,0 +1,530 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-E00L9PT3V9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-E00L9PT3V9');
+  </script>
+  <title>{{ page.title }} | LEVI</title>
+
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <meta name="author" content="{{ site.name }}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231B2F4C' width='100' height='100' rx='12'/><text x='50' y='68' font-family='system-ui,sans-serif' font-size='50' font-weight='600' fill='white' text-anchor='middle'>L</text></svg>">
+
+  <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/style.css" />
+  <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Top nav ── */
+    .docs-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 56px;
+      background: var(--bg-color);
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center;
+      padding: 0 max(28px, calc((100vw - 1600px) / 2)) 0 max(0px, calc((100vw - 1600px) / 2));
+      z-index: 1000;
+    }
+    .docs-nav-brand { display: flex; align-items: center; text-decoration: none; width: 280px; box-sizing: border-box; padding-left: 30px; flex-shrink: 0; }
+    .docs-nav-brand img { height: 28px; width: auto; }
+    .docs-nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .docs-nav-right a { color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.15s; }
+    .docs-nav-right a:hover { color: var(--heading-color); }
+    .docs-nav-divider { width: 1px; height: 20px; background: var(--border-color); }
+    .docs-search { display: flex; align-items: center; position: relative; }
+    .docs-search input {
+      background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;
+      color: var(--text-secondary); font-size: 13px; font-family: inherit;
+      padding: 6px 12px 6px 32px; width: 200px;
+      outline: none; transition: border-color 0.15s, width 0.2s;
+    }
+    .docs-search input::placeholder { color: var(--text-secondary); opacity: 0.6; }
+    .docs-search input:focus { border-color: var(--blog-accent); width: 240px; }
+    .docs-search-icon {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--text-secondary); opacity: 0.5; pointer-events: none;
+      width: 14px; height: 14px;
+    }
+    .docs-search-shortcut {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      display: flex; gap: 3px; pointer-events: none;
+    }
+    .docs-search-shortcut kbd {
+      font-family: inherit; font-size: 11px; color: var(--text-secondary); opacity: 0.5;
+      background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 4px;
+      padding: 1px 5px; line-height: 1.4;
+    }
+
+    /* ── Search modal ── */
+    .search-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 2000; justify-content: center; padding-top: 120px;
+    }
+    .search-overlay.open { display: flex; }
+    .search-modal {
+      background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px;
+      width: 560px; max-height: 480px; display: flex; flex-direction: column;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .search-modal-input {
+      display: flex; align-items: center; padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color); gap: 12px;
+    }
+    .search-modal-input svg { width: 18px; height: 18px; color: var(--text-secondary); opacity: 0.6; flex-shrink: 0; }
+    .search-modal-input input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--heading-color); font-size: 15px; font-family: inherit;
+    }
+    .search-modal-input input::placeholder { color: var(--text-secondary); opacity: 0.5; }
+    .search-modal-input kbd {
+      font-family: inherit; font-size: 11px; color: var(--text-secondary); opacity: 0.5;
+      background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px;
+      padding: 2px 6px; flex-shrink: 0;
+    }
+    .search-results {
+      overflow-y: auto; padding: 8px; flex: 1;
+    }
+    .search-results:empty::after {
+      content: 'No results found.'; display: block; padding: 24px;
+      text-align: center; color: var(--text-secondary); opacity: 0.6; font-size: 14px;
+    }
+    .search-result {
+      display: block; padding: 10px 14px; border-radius: 8px; cursor: pointer;
+      text-decoration: none; transition: background 0.1s;
+    }
+    .search-result:hover, .search-result.selected { background: rgba(255,255,255,0.06); }
+    .search-result-title { color: var(--heading-color); font-size: 14px; font-weight: 500; }
+    .search-result-section { color: var(--text-secondary); font-size: 12px; margin-top: 2px; opacity: 0.7; }
+    .search-result-preview { color: var(--text-secondary); font-size: 13px; margin-top: 4px; line-height: 1.5; }
+    .search-result-preview mark { background: none; color: var(--blog-accent); font-weight: 500; }
+    .search-modal-footer {
+      display: flex; align-items: center; gap: 16px; padding: 10px 18px;
+      border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-secondary); opacity: 0.5;
+    }
+    .search-modal-footer kbd {
+      font-family: inherit; background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 4px; padding: 1px 5px; font-size: 11px;
+    }
+
+    /* ── Sidebar ── */
+    .docs-sidebar {
+      position: fixed; top: 56px; bottom: 0;
+      width: 280px;
+      left: max(0px, calc((100vw - 1600px) / 2));
+      border-right: 1px solid var(--border-color);
+      padding: 28px 20px;
+      overflow-y: auto;
+      background: var(--bg-color);
+    }
+    .docs-sidebar ul { list-style: none; margin: 0; padding: 0; }
+    .docs-sidebar ul ul { padding-left: 14px; }
+    .docs-sidebar li { margin: 1px 0; }
+    .docs-sidebar a {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 10px;
+      color: var(--text-secondary); text-decoration: none;
+      font-size: 14px; border-radius: 6px;
+      transition: color 0.12s, background 0.12s;
+      cursor: pointer;
+    }
+    .docs-sidebar a:hover { color: var(--heading-color); background: rgba(255,255,255,0.04); }
+    .docs-sidebar a.active { color: var(--heading-color); background: rgba(255,255,255,0.06); font-weight: 500; }
+    .docs-sidebar .arrow {
+      display: inline-block; width: 0; height: 0;
+      border-left: 4px solid var(--text-secondary);
+      border-top: 3px solid transparent;
+      border-bottom: 3px solid transparent;
+      transition: transform 0.15s;
+      flex-shrink: 0; margin-left: 6px;
+    }
+    .docs-sidebar a.open .arrow { transform: rotate(90deg); }
+    .docs-sidebar .sub { display: none; }
+    .docs-sidebar .sub.open { display: block; }
+
+    /* ── Main ── */
+    .docs-main {
+      margin-left: max(280px, calc((100vw - 1600px) / 2 + 280px));
+      margin-right: max(0px, calc((100vw - 1600px) / 2));
+      margin-top: 56px;
+      min-height: calc(100vh - 56px);
+    }
+    .docs-content {
+      max-width: 900px;
+      padding: 40px 60px 80px 60px;
+    }
+
+    /* ── Section visibility ── */
+    .docs-section { display: none; }
+    .docs-section.active { display: block; }
+
+    /* ── Typography ── */
+    .docs-content h2 { font-size: 1.6rem; margin-top: 0; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); color: var(--heading-color); }
+    .docs-content h3 { font-size: 1.15rem; margin-top: 2rem; margin-bottom: 0.75rem; color: var(--heading-color); }
+    .docs-content h4 { font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--heading-color); }
+    .docs-content p { margin: 1rem 0; line-height: 1.8; }
+    .docs-content table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 14px; overflow-x: auto; display: block; }
+    .docs-content thead { background: var(--card-bg); }
+    .docs-content th, .docs-content td { padding: 8px 12px; border: 1px solid var(--border-color); text-align: left; }
+    .docs-content th { font-weight: 600; color: var(--heading-color); }
+    .docs-content td code { font-size: 13px; background: var(--code-inline-bg); padding: 1px 5px; border-radius: 4px; }
+    .docs-content pre { background: var(--code-bg); border: 1px solid var(--code-border); color: var(--code-text); padding: 20px; overflow-x: auto; font-size: 14px; line-height: 1.6; margin: 1.5rem 0; border-radius: 10px; }
+    .docs-content code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', Menlo, Consolas, monospace; font-size: 14px; }
+    .docs-content p code, .docs-content li code { font-size: 13px; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 2px 6px; border-radius: 4px; }
+    .docs-content ul, .docs-content ol { margin: 0.75rem 0; padding-left: 1.75rem; }
+    .docs-content li { margin: 0.4rem 0; line-height: 1.7; }
+    .docs-content blockquote { border-left: 3px solid var(--blog-accent); margin: 1rem 0; padding: 0.5rem 1rem; color: var(--text-secondary); }
+    .docs-content a { color: var(--blog-link); text-decoration: underline; text-decoration-color: var(--blog-link-underline); text-underline-offset: 2px; text-decoration-thickness: 1px; }
+    .docs-content a:hover { color: var(--blog-link-hover); text-decoration-color: var(--blog-link-hover); }
+
+    /* ── Callouts ── */
+    .callout { margin: 1.5rem 0; padding: 1rem 1.25rem; border-left: 3px solid var(--blog-accent); background: var(--blog-callout-bg); border-radius: 0 8px 8px 0; }
+    .callout p { margin: 0.4rem 0; }
+    .callout p:first-child { margin-top: 0; }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blog-accent); margin-bottom: 0.4rem; }
+    .callout-tip { border-left-color: #4ade80; background: rgba(74, 222, 128, 0.06); }
+    .callout-tip .callout-label { color: #4ade80; }
+    .callout-warning { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.06); }
+    .callout-warning .callout-label { color: #fbbf24; }
+
+    /* ── Hero ── */
+    .docs-hero { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 2rem; }
+    .docs-hero p { margin: 0.5rem 0; line-height: 1.7; }
+    .docs-hero p:first-child { margin-top: 0; }
+    .docs-hero p:last-child { margin-bottom: 0; }
+    .docs-hero-links { display: flex; gap: 16px; margin-top: 0.75rem; flex-wrap: wrap; }
+    .docs-hero-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 500; }
+
+    /* ── Config tables ── */
+    .config-table td:first-child { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; white-space: nowrap; color: var(--blog-accent); }
+    .config-table td:nth-child(2) { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; white-space: nowrap; color: var(--text-secondary); }
+    .config-table td:nth-child(3) { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; color: var(--text-secondary); }
+    .key-point { color: var(--blog-accent); font-weight: 600; }
+
+    /* ── Mobile ── */
+    @media screen and (max-width: 900px) {
+      .docs-sidebar { display: none; }
+      .docs-main { margin-left: 0; margin-top: 56px; }
+      .docs-content { padding: 28px 18px 60px 18px; }
+      .docs-section { display: block !important; }
+      .docs-nav-right { display: none; }
+    }
+
+    [id] { scroll-margin-top: 72px; }
+  </style>
+</head>
+
+<body>
+  <nav class="docs-nav">
+    <a class="docs-nav-brand" href="/levi/docs"><img src="/images/levi_logo_dark.svg" alt="LEVI"></a>
+    <div class="docs-nav-right">
+      <div class="docs-search">
+        <svg class="docs-search-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+        <input type="text" placeholder="Search..." readonly tabindex="-1">
+        <div class="docs-search-shortcut"><kbd>&#8984;</kbd><kbd>K</kbd></div>
+      </div>
+      <a href="https://github.com/ttanv/levi" target="_blank">GitHub</a>
+      <div class="docs-nav-divider"></div>
+      <a href="/levi">Blog Post</a>
+    </div>
+  </nav>
+
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-modal">
+      <div class="search-modal-input">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+        <input type="text" id="search-input" placeholder="Search..." autocomplete="off">
+        <kbd>esc</kbd>
+      </div>
+      <div class="search-results" id="search-results"></div>
+      <div class="search-modal-footer">
+        <span><kbd>&uarr;</kbd> <kbd>&darr;</kbd> navigate</span>
+        <span><kbd>&crarr;</kbd> open</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="docs-sidebar" id="docs-sidebar"></div>
+
+  <div class="docs-main">
+    <div class="docs-content" id="docs-content">
+      {{ content }}
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var content = document.getElementById('docs-content');
+    var sidebar = document.getElementById('docs-sidebar');
+    if (!content || !sidebar) return;
+
+    // 1. Move the TOC nav into the sidebar
+    var tocNav = content.querySelector('.docs-toc');
+    if (tocNav) {
+      sidebar.innerHTML = tocNav.innerHTML;
+      tocNav.remove();
+    }
+
+    // 2. Collect h2 ids in order
+    var sectionIds = [];
+    content.querySelectorAll('h2').forEach(function(h2) {
+      if (h2.id) sectionIds.push(h2.id);
+    });
+
+    // 3. Wrap each h2 + its content into a .docs-section div
+    //    Work backwards so DOM indices don't shift
+    for (var i = sectionIds.length - 1; i >= 0; i--) {
+      var h2 = document.getElementById(sectionIds[i]);
+      if (!h2) continue;
+
+      var div = document.createElement('div');
+      div.className = 'docs-section';
+      div.setAttribute('data-section', sectionIds[i]);
+
+      // Insert the wrapper right before the h2
+      h2.parentNode.insertBefore(div, h2);
+
+      // Move h2 and everything until next .docs-section or end into div
+      var next = div.nextSibling;
+      while (next) {
+        // Stop if we hit another docs-section wrapper (from a previous iteration)
+        if (next.nodeType === 1 && next.classList && next.classList.contains('docs-section')) break;
+        var toMove = next;
+        next = next.nextSibling;
+        div.appendChild(toMove);
+      }
+    }
+
+    // 4. Navigation logic
+    function showSection(id) {
+      // Hide all sections
+      content.querySelectorAll('.docs-section').forEach(function(s) {
+        s.classList.remove('active');
+      });
+      // Show target
+      var target = content.querySelector('.docs-section[data-section="' + id + '"]');
+      if (target) target.classList.add('active');
+
+      // Update sidebar active
+      sidebar.querySelectorAll('a').forEach(function(a) {
+        a.classList.remove('active');
+      });
+      var activeLink = sidebar.querySelector('a[href="#' + id + '"]');
+      if (activeLink) activeLink.classList.add('active');
+
+      // Auto-open parent sub-menu
+      if (activeLink) {
+        var parentSub = activeLink.closest('.sub');
+        if (parentSub) {
+          parentSub.classList.add('open');
+          var parentToggle = parentSub.previousElementSibling;
+          if (parentToggle) parentToggle.classList.add('open');
+        }
+      }
+
+      history.replaceState(null, null, '#' + id);
+      window.scrollTo(0, 0);
+    }
+
+    function findParentSection(targetId) {
+      // Check if targetId is a section
+      var sec = content.querySelector('.docs-section[data-section="' + targetId + '"]');
+      if (sec) return targetId;
+      // Otherwise find which section contains this id
+      for (var j = 0; j < sectionIds.length; j++) {
+        var s = content.querySelector('.docs-section[data-section="' + sectionIds[j] + '"]');
+        if (s && s.querySelector('#' + CSS.escape(targetId))) return sectionIds[j];
+      }
+      return sectionIds[0];
+    }
+
+    // 5. Wire sidebar clicks
+    sidebar.addEventListener('click', function(e) {
+      var link = e.target.closest('a');
+      if (!link) return;
+
+      // Handle clicks on links that have a submenu
+      var sub = link.nextElementSibling;
+      if (sub && sub.classList.contains('sub')) {
+        e.preventDefault();
+        e.stopPropagation();
+        link.classList.toggle('open');
+        sub.classList.toggle('open');
+        return;
+      }
+
+      var href = link.getAttribute('href');
+      if (!href || href.charAt(0) !== '#') return;
+      e.preventDefault();
+
+      var targetId = href.slice(1);
+      var parentSection = findParentSection(targetId);
+      showSection(parentSection);
+
+      // If it's a sub-heading, scroll to it after showing
+      if (targetId !== parentSection) {
+        setTimeout(function() {
+          var el = document.getElementById(targetId);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 30);
+      }
+    });
+
+    // 6. Initial section
+    var hash = window.location.hash ? window.location.hash.slice(1) : '';
+    var initial = hash ? findParentSection(hash) : sectionIds[0];
+    showSection(initial || sectionIds[0]);
+
+    // 7. Back/forward
+    window.addEventListener('hashchange', function() {
+      var h = window.location.hash ? window.location.hash.slice(1) : '';
+      if (h) showSection(findParentSection(h));
+    });
+
+    // ── Search ──
+    var searchIndex = [];
+    // Build index from all headings in the content
+    content.querySelectorAll('.docs-section').forEach(function(sec) {
+      var sectionId = sec.getAttribute('data-section');
+      var sectionH2 = sec.querySelector('h2');
+      var sectionTitle = sectionH2 ? sectionH2.textContent.trim() : '';
+
+      sec.querySelectorAll('h2, h3, h4').forEach(function(heading) {
+        var title = heading.textContent.trim();
+        var id = heading.id || sectionId;
+        // Grab text from following siblings until next heading
+        var preview = '';
+        var next = heading.nextElementSibling;
+        while (next && !/^H[234]$/.test(next.tagName)) {
+          preview += ' ' + next.textContent;
+          next = next.nextElementSibling;
+        }
+        preview = preview.replace(/\s+/g, ' ').trim().slice(0, 200);
+        searchIndex.push({
+          title: title,
+          section: sectionTitle,
+          sectionId: sectionId,
+          targetId: id,
+          preview: preview,
+          searchText: (title + ' ' + preview).toLowerCase()
+        });
+      });
+    });
+
+    var overlay = document.getElementById('search-overlay');
+    var searchInput = document.getElementById('search-input');
+    var searchResults = document.getElementById('search-results');
+    var selectedIdx = -1;
+
+    function openSearch() {
+      overlay.classList.add('open');
+      searchInput.value = '';
+      searchResults.innerHTML = '';
+      selectedIdx = -1;
+      setTimeout(function() { searchInput.focus(); }, 50);
+    }
+    function closeSearch() {
+      overlay.classList.remove('open');
+      searchInput.value = '';
+    }
+
+    // Trigger from nav bar search input
+    var navSearchInput = document.querySelector('.docs-search input');
+    if (navSearchInput) {
+      navSearchInput.addEventListener('click', function(e) { e.preventDefault(); openSearch(); });
+      navSearchInput.addEventListener('focus', function(e) { e.target.blur(); openSearch(); });
+    }
+
+    // Cmd+K / Ctrl+K
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
+      if (e.key === 'Escape') closeSearch();
+    });
+
+    // Close on overlay click
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeSearch(); });
+
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      var idx = text.toLowerCase().indexOf(query.toLowerCase());
+      if (idx === -1) return text;
+      return text.slice(0, idx) + '<mark>' + text.slice(idx, idx + query.length) + '</mark>' + text.slice(idx + query.length);
+    }
+
+    function renderResults(query) {
+      searchResults.innerHTML = '';
+      selectedIdx = -1;
+      if (!query) return;
+      var q = query.toLowerCase();
+      var matches = searchIndex.filter(function(item) { return item.searchText.indexOf(q) !== -1; });
+      // Sort: title matches first
+      matches.sort(function(a, b) {
+        var aTitle = a.title.toLowerCase().indexOf(q) !== -1 ? 0 : 1;
+        var bTitle = b.title.toLowerCase().indexOf(q) !== -1 ? 0 : 1;
+        return aTitle - bTitle;
+      });
+      matches.slice(0, 12).forEach(function(item, i) {
+        var div = document.createElement('div');
+        div.className = 'search-result';
+        div.setAttribute('data-idx', i);
+        var titleHtml = highlightMatch(item.title, query);
+        var previewHtml = item.preview ? highlightMatch(item.preview.slice(0, 120), query) : '';
+        div.innerHTML = '<div class="search-result-title">' + titleHtml + '</div>' +
+          (item.title !== item.section ? '<div class="search-result-section">' + item.section + '</div>' : '') +
+          (previewHtml ? '<div class="search-result-preview">' + previewHtml + '...</div>' : '');
+        div.addEventListener('click', function() { navigateTo(item); });
+        searchResults.appendChild(div);
+      });
+      if (matches.length > 0) { selectedIdx = 0; updateSelected(); }
+    }
+
+    function updateSelected() {
+      searchResults.querySelectorAll('.search-result').forEach(function(el, i) {
+        el.classList.toggle('selected', i === selectedIdx);
+        if (i === selectedIdx) el.scrollIntoView({ block: 'nearest' });
+      });
+    }
+
+    function navigateTo(item) {
+      closeSearch();
+      showSection(item.sectionId);
+      if (item.targetId !== item.sectionId) {
+        setTimeout(function() {
+          var el = document.getElementById(item.targetId);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 30);
+      }
+    }
+
+    searchInput.addEventListener('input', function() { renderResults(this.value.trim()); });
+    searchInput.addEventListener('keydown', function(e) {
+      var results = searchResults.querySelectorAll('.search-result');
+      if (!results.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, results.length - 1); updateSelected(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); updateSelected(); }
+      else if (e.key === 'Enter' && selectedIdx >= 0) {
+        e.preventDefault();
+        var q = searchInput.value.trim().toLowerCase();
+        var matches = searchIndex.filter(function(item) { return item.searchText.indexOf(q) !== -1; });
+        matches.sort(function(a, b) {
+          var aTitle = a.title.toLowerCase().indexOf(q) !== -1 ? 0 : 1;
+          var bTitle = b.title.toLowerCase().indexOf(q) !== -1 ? 0 : 1;
+          return aTitle - bTitle;
+        });
+        if (matches[selectedIdx]) navigateTo(matches[selectedIdx]);
+      }
+    });
+  })();
+  </script>
+</body>
+
+</html>

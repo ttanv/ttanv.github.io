@@ -427,18 +427,21 @@ span.highlight {
   overflow: hidden;
 }
 
-.blog-content .adrs-table {
+.blog-content .adrs-table,
+.docs-content .adrs-table {
   width: 100%;
   border-collapse: collapse;
   display: table;
   margin: 0;
 }
 
-.blog-content .adrs-table thead {
+.blog-content .adrs-table thead,
+.docs-content .adrs-table thead {
   background: var(--adrs-head-bg);
 }
 
-.blog-content .adrs-table thead th {
+.blog-content .adrs-table thead th,
+.docs-content .adrs-table thead th {
   background: var(--adrs-head-bg);
   color: var(--text-secondary);
   font-size: 11px;
@@ -451,39 +454,47 @@ span.highlight {
   text-align: center;
 }
 
-.blog-content .adrs-table thead th.adrs-sticky {
+.blog-content .adrs-table thead th.adrs-sticky,
+.docs-content .adrs-table thead th.adrs-sticky {
   text-align: left;
 }
 
-.blog-content .adrs-table td {
+.blog-content .adrs-table td,
+.docs-content .adrs-table td {
   padding: 10px 8px;
   border: none;
   border-bottom: 1px solid var(--border-color);
   text-align: center;
 }
 
-.blog-content .adrs-table tbody tr:hover {
+.blog-content .adrs-table tbody tr:hover,
+.docs-content .adrs-table tbody tr:hover {
   background: var(--adrs-row-hover);
 }
 
-.blog-content .adrs-table tbody tr.is-levi {
+.blog-content .adrs-table tbody tr.is-levi,
+.docs-content .adrs-table tbody tr.is-levi {
   background: var(--adrs-levi-bg);
 }
 
-.blog-content .adrs-table .adrs-sticky {
+.blog-content .adrs-table .adrs-sticky,
+.docs-content .adrs-table .adrs-sticky {
   text-align: left;
 }
 
-.blog-content .adrs-table tbody tr.is-levi .adrs-sticky {
+.blog-content .adrs-table tbody tr.is-levi .adrs-sticky,
+.docs-content .adrs-table tbody tr.is-levi .adrs-sticky {
   background: var(--adrs-levi-bg);
   border-left: 3px solid var(--adrs-levi-border);
 }
 
-.blog-content .adrs-table tbody tr:last-child td {
+.blog-content .adrs-table tbody tr:last-child td,
+.docs-content .adrs-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.blog-content .adrs-table .adrs-average {
+.blog-content .adrs-table .adrs-average,
+.docs-content .adrs-table .adrs-average {
   border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
   background: var(--adrs-average-bg);

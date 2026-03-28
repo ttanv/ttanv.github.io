@@ -386,7 +386,7 @@ result = levi.evolve_code(
 )
 ```
 
-Try it out at [github.com/ttanv/levi](https://github.com/ttanv/levi)!
+Try it out at [github.com/ttanv/levi](https://github.com/ttanv/levi)! For full installation, configuration, and usage details, see the [LEVI Documentation](/levi/docs).
 
 
 
