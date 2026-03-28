@@ -51,7 +51,7 @@ permalink: /levi/docs
 
 <div class="docs-hero">
   <p><strong>LEVI</strong> discovers algorithms and optimized code using LLMs + evolutionary search. Define a scoring function, set a dollar budget, and walk away.</p>
-  <p>State-of-the-art results across 7 algorithmic discovery problems&mdash;spanning scheduling, forecasting, SQL optimization, and load balancing&mdash;at 3&ndash;7x lower cost than existing frameworks.</p>
+  <p>State-of-the-art results across 7 algorithmic discovery problems, spanning scheduling, forecasting, SQL optimization, and load balancing, at 3&ndash;7x lower cost than existing frameworks.</p>
   <div class="docs-hero-links">
     <a href="https://github.com/ttanv/levi">GitHub</a>
     <a href="/levi">How It Works (Blog)</a>
@@ -73,11 +73,11 @@ No configuration files, no pipeline setup. One function call, one budget. Works 
 
 ### 3&ndash;7x cheaper
 
-90%+ of mutations go through lightweight local models. Frontier models are reserved for infrequent paradigm shifts. **$4.50 per problem** versus $15&ndash;$30 for baselines&mdash;saving over $100 across the <a href="https://ucbskyadrs.github.io/blog/levi/">ADRS suite</a>. LEVI also achieves **12x better sample efficiency**, reaching equivalent scores in 50 evaluations where other frameworks need 600+&mdash;more signal per dollar.
+90%+ of mutations go through lightweight local models. Frontier models are reserved for infrequent paradigm shifts. **$4.50 per problem** versus $15&ndash;$30 for baselines, saving over $100 across the <a href="https://ucbskyadrs.github.io/blog/levi/">ADRS suite</a>. More signal per dollar.
 
 ### Async &amp; parallel
 
-N mutation producers and M evaluation workers run concurrently, connected by an async queue. Neither side blocks the other. Pair this with local models for zero-latency generation&mdash;or mix local and cloud in the same run.
+N mutation producers and M evaluation workers run concurrently, connected by an async queue. Neither side blocks the other. Pair this with local models for zero-latency generation, or mix local and cloud in the same run.
 
 Full benchmark results and methodology: <a href="https://ucbskyadrs.github.io/blog/levi/">ADRS leaderboard</a>.
 
@@ -129,11 +129,11 @@ uv run python my_run.py
 
 That's a complete LEVI program. Here's what each piece does:
 
-- **`problem_description`** &mdash; Natural language description of the optimization goal. This is injected into LLM prompts.
-- **`function_signature`** &mdash; The Python function signature LEVI will evolve (e.g., `"def pack(items, bin_capacity):"`).
-- **`score_fn`** &mdash; Your evaluation function. It receives the evolved callable and must return a dict with at least `{"score": float}`. Higher is better.
-- **`model`** &mdash; The LLM to use, in [LiteLLM format](https://docs.litellm.ai/docs/providers).
-- **`budget_dollars`** &mdash; Maximum dollar spend. LEVI tracks cost in real-time and stops when the budget is hit.
+- **`problem_description`** — Natural language description of the optimization goal. This is injected into LLM prompts.
+- **`function_signature`** — The Python function signature LEVI will evolve (e.g., `"def pack(items, bin_capacity):"`).
+- **`score_fn`** — Your evaluation function. It receives the evolved callable and must return a dict with at least `{"score": float}`. Higher is better.
+- **`model`** — The LLM to use, in [LiteLLM format](https://docs.litellm.ai/docs/providers).
+- **`budget_dollars`** — Maximum dollar spend. LEVI tracks cost in real-time and stops when the budget is hit.
 
 ### Understanding the Result
 
@@ -151,7 +151,7 @@ That's a complete LEVI program. Here's what each piece does:
 
 <div class="callout callout-tip">
   <div class="callout-label">Try it</div>
-  <p>For a self-contained example that uses local models and needs no dataset, run <code>examples/circle_packing/run.py</code>.</p>
+  <p>For a self-contained example that uses local models and needs no dataset, run <a href="https://github.com/ttanv/levi/blob/main/examples/circle_packing/run.py"><code>examples/circle_packing/run.py</code></a>.</p>
 </div>
 
 ## Local Models
@@ -162,8 +162,8 @@ Most LLM-guided optimization frameworks couple performance to model capability. 
 
 The key insight is *stratified model allocation*:
 
-- **Mutation models** (the workhorse) &mdash; handle the bulk of code generation. These can be small, fast, and free. Think Qwen3-30B on your own GPU or Xiaomi MiMo-v2-Flash on OpenRouter at fractions of a cent.
-- **Paradigm models** (the creative spark) &mdash; used periodically (every ~10 generations) to propose fundamentally new algorithmic approaches. This is the only place where a stronger model helps, and it's called infrequently.
+- **Mutation models** (the workhorse) handle the bulk of code generation. These can be small, fast, and free. Think Qwen3-30B on your own GPU or MiMo-v2-Flash on OpenRouter at fractions of a cent.
+- **Paradigm models** (the creative spark) are used periodically (every ~10 generations) to propose fundamentally new algorithmic approaches. This is the only place where a stronger model helps, and it's called infrequently.
 
 This means you can run LEVI with a local model doing 95% of the work and only pay for occasional cloud calls. On the [ADRS benchmark](https://ucbskyadrs.github.io/), this configuration achieves **the highest scores of any framework at 3&ndash;7x lower cost**.
 
@@ -192,7 +192,7 @@ result = levi.evolve_code(
     "Optimize bin packing to minimize wasted space",
     function_signature="def pack(items, bin_capacity):",
     score_fn=score_fn,
-    mutation_model=["Qwen/Qwen3-30B-A3B-Instruct-2507"],
+    mutation_model="Qwen/Qwen3-30B-A3B-Instruct-2507",
     paradigm_model="openrouter/google/gemini-3-flash-preview",
     local_endpoints={
         "Qwen/Qwen3-30B-A3B-Instruct-2507": "http://localhost:8000/v1"
@@ -213,7 +213,7 @@ result = levi.evolve_code(
     function_signature=sig,
     score_fn=score_fn,
     # Cheap local model for the bulk of mutations
-    mutation_model=["Qwen/Qwen3-30B-A3B-Instruct-2507"],
+    mutation_model="Qwen/Qwen3-30B-A3B-Instruct-2507",
     # Cloud model for periodic paradigm shifts only
     paradigm_model="openrouter/google/gemini-3-flash-preview",
     local_endpoints={
@@ -232,7 +232,7 @@ You can also use **multiple mutation models** for load balancing:
 ```python
 mutation_model=[
     "Qwen/Qwen3-30B-A3B-Instruct-2507",        # local
-    "openrouter/xiaomi/mimo-v2-flash",           # cloud, very cheap
+    "openrouter/mimo-v2-flash",                   # cloud, very cheap
 ],
 local_endpoints={
     "Qwen/Qwen3-30B-A3B-Instruct-2507": "http://localhost:8000/v1"
@@ -263,7 +263,7 @@ Smaller models benefit significantly from optimized prompts. LEVI integrates [DS
 ```python
 result = levi.evolve_code(
     ...,
-    mutation_model=["Qwen/Qwen3-30B-A3B-Instruct-2507"],
+    mutation_model="Qwen/Qwen3-30B-A3B-Instruct-2507",
     paradigm_model="openrouter/google/gemini-3-flash-preview",
     local_endpoints={"Qwen/Qwen3-30B-A3B-Instruct-2507": "http://localhost:8000/v1"},
     prompt_opt=levi.PromptOptConfig(enabled=True),
@@ -310,12 +310,12 @@ LEVI uses an **async producer-consumer pipeline** that runs LLM generation and c
 
 While one candidate is being evaluated, others are being generated. While the LLM is thinking, evaluations are running. **Nothing waits.**
 
-The result: LEVI achieves near-peak performance **up to 12x faster in sample efficiency** compared to sequential frameworks on equal-budget comparisons. On the ADRS benchmark, LEVI converges to top scores in a fraction of the wall-clock time.
+On the ADRS benchmark, LEVI converges to top scores in a fraction of the wall-clock time.
 
 Each evaluation runs in its own **subprocess** via `ResilientProcessPool`, providing:
-- **Isolation** &mdash; a candidate that crashes or loops doesn't take down the pipeline
-- **Hard timeouts** &mdash; stuck evaluations are terminated after `eval_timeout` seconds
-- **True parallelism** &mdash; evaluations run on separate CPU cores, not just async tasks
+- **Isolation** — a candidate that crashes or loops doesn't take down the pipeline
+- **Hard timeouts** — stuck evaluations are terminated after `eval_timeout` seconds
+- **True parallelism** — evaluations run on separate CPU cores, not just async tasks
 
 ### Tuning Parallelism
 
@@ -347,7 +347,7 @@ Start with `n_llm_workers ≈ n_eval_processes`, then skew toward whichever side
 
 Every LEVI run requires three things:
 
-**1. Problem description** &mdash; A natural language description injected into LLM prompts. Be specific about constraints, objectives, and edge cases:
+**1. Problem description** — A natural language description injected into LLM prompts. Be specific about constraints, objectives, and edge cases:
 
 ```python
 problem_description = """
@@ -357,13 +357,13 @@ machines. Minimize the time at which all jobs are complete.
 """
 ```
 
-**2. Function signature** &mdash; The Python function that LEVI will evolve. Must be a valid `def` statement:
+**2. Function signature** — The Python function that LEVI will evolve. Must be a valid `def` statement:
 
 ```python
 function_signature = "def schedule(jobs, n_machines):"
 ```
 
-**3. Score function** &mdash; Your evaluation logic. Receives the evolved callable and returns a dict with at least `{"score": float}`:
+**3. Score function** — Your evaluation logic. Receives the evolved callable and returns a dict with at least `{"score": float}`:
 
 ```python
 def score_fn(schedule):
@@ -395,6 +395,8 @@ result = levi.evolve_code(
     inputs=TEST_INPUTS,     # score_fn(fn, inputs) will be called
 )
 ```
+
+Not sure how to phrase your problem description? LEVI has built-in **prompt optimization** that can refine your description automatically. See the [Prompt Optimization](#prompt-optimization-for-smaller-models) section under Local Models.
 
 ### Behavioral Features
 
@@ -489,7 +491,7 @@ result = levi.evolve_code(
 
 ### Guiding the Search
 
-**Seed program** &mdash; Provide a working (even naive) starting implementation. LEVI generates diverse variants from it during initialization:
+**Seed program** — Provide a working (even naive) starting implementation. LEVI generates diverse variants from it during initialization:
 
 ```python
 result = levi.evolve_code(
@@ -508,7 +510,7 @@ def schedule(jobs, n_machines):
 )
 ```
 
-**Paradigm shifts** &mdash; For problems where you suspect multiple viable algorithmic families (greedy, dynamic programming, metaheuristic), keep punctuated equilibrium enabled (it is by default). This periodically uses the paradigm model to propose entirely new approaches:
+**Paradigm shifts** — For problems where you suspect multiple viable algorithmic families (greedy, dynamic programming, metaheuristic), keep punctuated equilibrium enabled (it is by default). This periodically uses the paradigm model to propose entirely new approaches:
 
 ```python
 punctuated_equilibrium=levi.PunctuatedEquilibriumConfig(
@@ -519,7 +521,7 @@ punctuated_equilibrium=levi.PunctuatedEquilibriumConfig(
 )
 ```
 
-**Inspirations** &mdash; Control how many existing solutions are shown to the LLM when generating mutations:
+**Inspirations** — Control how many existing solutions are shown to the LLM when generating mutations:
 
 ```python
 pipeline=levi.PipelineConfig(
@@ -530,23 +532,23 @@ pipeline=levi.PipelineConfig(
 
 ## Core Concepts
 
-**Programs** &mdash; LEVI evolves Python functions. Each candidate is a `Program` containing the code string, a unique ID, and metadata.
+**Programs** — LEVI evolves Python functions. Each candidate is a `Program` containing the code string, a unique ID, and metadata.
 
-**Scoring** &mdash; Your `score_fn` evaluates each candidate. It must return `{"score": float}` where higher is better. Additional keys are used for diversity and reporting.
+**Scoring** — Your `score_fn` evaluates each candidate. It must return `{"score": float}` where higher is better. Additional keys are used for diversity and reporting.
 
-**Archive (CVT-MAP-Elites)** &mdash; The population is stored in a behavioral archive: a grid of cells where each cell holds the single best solution with that behavioral profile. This prevents convergence by forcing the population to maintain structural diversity. The archive uses Centroidal Voronoi Tessellation (CVT) to partition behavior space into `n_centroids` cells (default: 50).
+**Archive (CVT-MAP-Elites)** — The population is stored in a behavioral archive: a grid of cells where each cell holds the single best solution with that behavioral profile. This prevents convergence by forcing the population to maintain structural diversity. The archive uses Centroidal Voronoi Tessellation (CVT) to partition behavior space into `n_centroids` cells (default: 50).
 
-**Stratified Models** &mdash; Mutation models handle the bulk of code generation (cheap, fast). Paradigm models are used only for periodic "paradigm shifts" that propose fundamentally new approaches (stronger, infrequent).
+**Stratified Models** — Mutation models handle the bulk of code generation (cheap, fast). Paradigm models are used only for periodic "paradigm shifts" that propose fundamentally new approaches (stronger, infrequent).
 
-**Samplers** &mdash; The archive uses multiple sampling strategies to select parents for mutation:
-- **Softmax** &mdash; Temperature-weighted sampling by fitness (higher temperature = more exploration)
-- **UCB** &mdash; Upper Confidence Bound balances exploration and exploitation
-- **Uniform** &mdash; Pure random selection
-- **Per-subscore** &mdash; Samples the best solution for each secondary metric
+**Samplers** — The archive uses multiple sampling strategies to select parents for mutation:
+- **Softmax** — Temperature-weighted sampling by fitness (higher temperature = more exploration)
+- **UCB** — Upper Confidence Bound balances exploration and exploitation
+- **Uniform** — Pure random selection
+- **Per-subscore** — Samples the best solution for each secondary metric
 
-**Meta-Advice** &mdash; LEVI analyzes failure patterns (crashes, timeouts, invalid code) and generates lessons that are injected into future LLM prompts. This helps the search avoid repeating mistakes.
+**Meta-Advice** — LEVI analyzes failure patterns (crashes, timeouts, invalid code) and generates lessons that are injected into future LLM prompts. This helps the search avoid repeating mistakes.
 
-**Budget** &mdash; LEVI tracks spend across all parallel workers in real-time. You can set limits on dollars, evaluations, wall-clock time, or target score (stop when reached). Multiple constraints can be combined.
+**Budget** — LEVI tracks spend across all parallel workers in real-time. You can set limits on dollars, evaluations, wall-clock time, or target score (stop when reached). Multiple constraints can be combined.
 
 ## Configuration Reference
 
@@ -574,11 +576,11 @@ result = levi.evolve_code(
 ) -> LeviResult
 ```
 
-**Model selection** &mdash; Pass `model` for a single model doing everything, *or* `paradigm_model`/`mutation_model` for separate models. Cannot mix both.
+**Model selection** — Pass `model` for a single model doing everything, *or* `paradigm_model`/`mutation_model` for separate models. Cannot mix both.
 
-**Budget** &mdash; At least one of `budget_dollars`, `budget_evals`, or `budget_seconds` is required. Multiple can be combined (AND logic — stops when *any* is hit).
+**Budget** — At least one of `budget_dollars`, `budget_evals`, or `budget_seconds` is required. Multiple can be combined (AND logic — stops when *any* is hit).
 
-**kwargs** &mdash; Any `LeviConfig` field can be passed directly: `pipeline`, `behavior`, `punctuated_equilibrium`, `prompt_opt`, `local_endpoints`, `model_info`, `output_dir`, etc.
+**kwargs** — Any `LeviConfig` field can be passed directly: `pipeline`, `behavior`, `punctuated_equilibrium`, `prompt_opt`, `local_endpoints`, `model_info`, `output_dir`, etc.
 
 ### BudgetConfig
 
@@ -803,11 +805,11 @@ result = levi.evolve_code(
 
 By default, LEVI auto-generates softmax sampler pairs at 4 temperatures (0.3, 0.7, 1.0, 1.2) for each mutation model. You can customize this:
 
-- **Softmax** &mdash; Temperature-weighted sampling by fitness. Low temperature (0.3) exploits top solutions; high temperature (1.2) explores broadly.
-- **UCB** &mdash; Upper Confidence Bound. Automatically balances exploration and exploitation based on which archive cells have been productive.
-- **Uniform** &mdash; Pure random selection. Ensures every cell gets sampled eventually.
-- **Per-subscore** &mdash; Samples the best solution for each secondary metric (`score_keys`). Useful when your problem has multiple objectives.
-- **Cyclic Annealing** &mdash; Temperature oscillates between high and low over the budget, creating periodic exploration/exploitation phases.
+- **Softmax** — Temperature-weighted sampling by fitness. Low temperature (0.3) exploits top solutions; high temperature (1.2) explores broadly.
+- **UCB** — Upper Confidence Bound. Automatically balances exploration and exploitation based on which archive cells have been productive.
+- **Uniform** — Pure random selection. Ensures every cell gets sampled eventually.
+- **Per-subscore** — Samples the best solution for each secondary metric (`score_keys`). Useful when your problem has multiple objectives.
+- **Cyclic Annealing** — Temperature oscillates between high and low over the budget, creating periodic exploration/exploitation phases.
 
 ### Cascade Evaluation
 
@@ -871,7 +873,7 @@ result = levi.evolve_code(
 ```python
 result = levi.evolve_code(
     problem, function_signature=sig, score_fn=scorer,
-    mutation_model=["Qwen/Qwen3-30B-A3B-Instruct-2507"],
+    mutation_model="Qwen/Qwen3-30B-A3B-Instruct-2507",
     paradigm_model="openrouter/google/gemini-3-flash-preview",
     local_endpoints={"Qwen/Qwen3-30B-A3B-Instruct-2507": "http://localhost:8000/v1"},
     budget_dollars=4.50,
@@ -884,7 +886,7 @@ result = levi.evolve_code(
 result = levi.evolve_code(
     problem, function_signature=sig, score_fn=scorer,
     seed_program=my_seed, inputs=test_inputs,
-    mutation_model=["Qwen/Qwen3-30B-A3B-Instruct-2507", "openrouter/xiaomi/mimo-v2-flash"],
+    mutation_model=["Qwen/Qwen3-30B-A3B-Instruct-2507", "openrouter/mimo-v2-flash"],
     paradigm_model="openrouter/google/gemini-3-flash-preview",
     local_endpoints={"Qwen/Qwen3-30B-A3B-Instruct-2507": "http://localhost:8000/v1"},
     budget_dollars=4.50,
@@ -902,28 +904,28 @@ result = levi.evolve_code(
 
 ### Common Errors
 
-**`OPENAI_API_KEY` not set** &mdash; Set your API key as an environment variable:
+**`OPENAI_API_KEY` not set** — Set your API key as an environment variable:
 ```bash
 export OPENAI_API_KEY="sk-..."
 # For OpenRouter models:
 export OPENROUTER_API_KEY="sk-or-..."
 ```
 
-**`Must specify 'model' or 'paradigm_model'/'mutation_model'`** &mdash; You need to provide at least one model. Pass `model=` for a single model, or `paradigm_model=`/`mutation_model=` for separate models.
+**`Must specify 'model' or 'paradigm_model'/'mutation_model'`** — You need to provide at least one model. Pass `model=` for a single model, or `paradigm_model=`/`mutation_model=` for separate models.
 
-**`Must specify at least one budget constraint`** &mdash; Pass at least one of `budget_dollars`, `budget_evals`, or `budget_seconds`.
+**`Must specify at least one budget constraint`** — Pass at least one of `budget_dollars`, `budget_evals`, or `budget_seconds`.
 
-**Evaluation timeouts** &mdash; If you see many timeout errors, increase `eval_timeout`:
+**Evaluation timeouts** — If you see many timeout errors, increase `eval_timeout`:
 ```python
 pipeline=levi.PipelineConfig(eval_timeout=300)
 ```
 
-**Local model connection refused** &mdash; Verify your local model server is running and the URL matches `local_endpoints`. Test with:
+**Local model connection refused** — Verify your local model server is running and the URL matches `local_endpoints`. Test with:
 ```bash
 curl http://localhost:8000/v1/models
 ```
 
-**Rate limit errors** &mdash; Reduce `n_llm_workers` to lower concurrent API requests:
+**Rate limit errors** — Reduce `n_llm_workers` to lower concurrent API requests:
 ```python
 pipeline=levi.PipelineConfig(n_llm_workers=4)
 ```
