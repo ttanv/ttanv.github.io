@@ -210,6 +210,44 @@
     .config-table td:nth-child(3) { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; color: var(--text-secondary); }
     .key-point { color: var(--blog-accent); font-weight: 600; }
 
+    /* ── Figure captions ── */
+    .figure-caption {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: -1rem;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    /* ── Sidenotes ── */
+    .sidenote {
+      float: right;
+      clear: right;
+      width: 200px;
+      margin-right: -240px;
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+    .sidenote .sn-num {
+      font-size: 0.75em;
+      vertical-align: super;
+      line-height: 0;
+      margin-right: 2px;
+    }
+    .sidenote a {
+      color: var(--text-secondary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      font-size: inherit !important;
+    }
+    .sidenote a:hover {
+      color: var(--heading-color);
+    }
+
     /* ── Mobile ── */
     @media screen and (max-width: 900px) {
       .docs-sidebar { display: none; }
@@ -217,6 +255,7 @@
       .docs-content { padding: 28px 18px 60px 18px; }
       .docs-section { display: block !important; }
       .docs-nav-right { display: none; }
+      .sidenote { display: none; }
     }
 
     [id] { scroll-margin-top: 72px; }
@@ -234,7 +273,7 @@
       </div>
       <a href="https://github.com/ttanv/levi" target="_blank">GitHub</a>
       <div class="docs-nav-divider"></div>
-      <a href="/levi">Blog Post</a>
+      <a href="#how-it-works">How It Works</a>
     </div>
   </nav>
 
