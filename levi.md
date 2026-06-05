@@ -2,7 +2,7 @@
 layout: blog
 title: "LEVI: Stronger Search Architectures Can Substitute for Larger LLMs"
 subtitle: "A harness-first evolutionary framework for code and prompt optimization. Better scores than frontier-model runs of GEPA, OpenEvolve, ShinkaEvolve, AdaEvolve, and EvoX, at 3.3–6.7× lower cost."
-date: 2026-02-01
+date: 2026-06-01
 permalink: /levi/
 ---
 
@@ -287,4 +287,5 @@ LEVI is open-source. Point it at a scoring function and a seed program, and it r
 <div class="levi-actions">
   <a class="primary" href="https://github.com/ttanv/levi">GitHub</a>
   <a href="/levi/docs">Documentation</a>
+  <a href="https://arxiv.org/abs/2605.09764v1">arXiv</a>
 </div>

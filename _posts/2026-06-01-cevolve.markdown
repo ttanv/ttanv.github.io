@@ -1,0 +1,11 @@
+---
+layout: post
+title:  "LEVI: Stronger Search Architectures Can Substitute for Larger LLMs"
+date:   2026-06-01 00:00:00 +00:00
+image: /images/levi/levi_architecture.png
+image_dark: /images/levi/levi_architecture.png
+categories: Intel
+author: "Temoor Ali"
+blog_url: /levi
+---
+A harness-first evolutionary framework for code and prompt optimization. Beats frontier-budget runs of GEPA, OpenEvolve, ShinkaEvolve, AdaEvolve, and EvoX on six of seven systems benchmarks at 3.3–6.7x lower cost.
