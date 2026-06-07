@@ -135,7 +135,7 @@ permalink: /levi/
 }
 </style>
 
-Most LLM-guided evolutionary systems get their results the expensive way: by pointing a frontier model at the problem and burning through hundreds or thousands of calls. **LEVI takes the opposite bet, that a stronger search architecture can substitute for a larger model.** Fix the harness so the archive preserves diverse solutions, route mutations to the model that actually fits the job, and stop re-scoring redundant examples, and strong results follow even from small open-weight models on a small budget.
+Most LLM-guided evolutionary systems get their results the expensive way: by pointing a frontier model at the problem and burning through hundreds or thousands of expensive calls. **LEVI takes the opposite bet, that a stronger search architecture can substitute for a larger model and drastically reduce the cost.** Fix the harness so the archive preserves diverse solutions instead of the model, route mutations to the model that actually fits the job, and stop re-scoring redundant examples, and strong results follow even from small open-source models at a fraction of the budget.
 
 This holds across two very different settings:
 
@@ -164,7 +164,7 @@ The catch is cost. A single run can require thousands of calls to expensive fron
 - **Per-dollar.** Mutation calls are treated uniformly, so frontier-model prices get paid even for local edits a small model could handle.
 - **Per-rollout.** Every candidate is re-scored on the full validation set, spending rollouts on redundant examples, which is especially painful in prompt optimization.
 
-LEVI decouples all three. Rather than building the harness around the assumption of a strong model, we ask what the search architecture should look like when model calls are expensive and limited.
+LEVI fixes all three. Rather than building the harness around the assumption of a strong model, we ask what the search architecture should look like when the budget is limited.
 
 ## LEVI
 
@@ -177,7 +177,7 @@ LEVI decouples all three. Rather than building the harness around the assumption
 
 LEVI follows an asynchronous AlphaEvolve-style loop. The solution database stores evaluated candidates, samplers draw parents from it, the router sends mutation requests to the appropriate model, and resulting candidates are evaluated in parallel before being inserted back. Parents are sampled with a softmax over scores, with worker-specific temperatures balancing exploration and exploitation across the parallel pool. The three pieces below are best read as extensions of each other: the archive provides the structure that makes principled routing possible, and principled routing is what makes a diversity-preserving archive practical under a tight budget.
 
-### A solution database that establishes diversity early and keeps it
+### A solution database that establishes diversity early and maintains it
 
 <p class="section-desc">Diverse seeding plus a CVT-MAP-Elites archive with flexible behavioral dimensions.</p>
 
